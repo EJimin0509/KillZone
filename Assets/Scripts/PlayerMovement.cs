@@ -120,31 +120,36 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private void TryMove()
     {
-        //if (!_isSelected) return;
-
-        if (!_isSelected)
-        {
-            Debug.Log("이동 실패: 유닛이 선택되지 않은 상태임");
-            return;
-        }
+        if (!_isSelected) return;
 
         Vector2 mousePos = GetMouseWorldPos();
+        Vector3 targetPos = new Vector3(mousePos.x, mousePos.y, 0f);
 
-        // 3. 최단거리 이동 명령
-        NavMeshPath path = new NavMeshPath();
-        _agent.CalculatePath(mousePos, path);
-        Debug.Log("이동 시작");
+        // 적 레이어 체크
+        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, unitLayer);
+        UnitCombat combat = GetComponent<UnitCombat>();
 
-        // 4. 갈 수 없는 경로인지 판단
-        if (path.status == NavMeshPathStatus.PathComplete)
+        // [핵심] 새로운 이동 명령이 들어오면 에이전트를 강제로 활성화
+        _agent.isStopped = false;
+
+        if (hit.collider != null && hit.collider.CompareTag("Enemy"))
         {
-            _agent.SetDestination(mousePos);
+            Debug.Log($"[명령] 적 추적 공격: {hit.collider.name}");
+            if (combat != null) combat.SetManualTarget(hit.collider.gameObject);
+            _agent.SetDestination(hit.collider.transform.position);
         }
         else
         {
-            // 경로가 막혔거나 불완전할 경우 이동 중지
-            Debug.Log("경로가 막혀 이동할 수 없습니다.");
-            _agent.ResetPath();
+            Debug.Log($"[명령] 일반 이동: {targetPos}");
+
+            // 땅을 클릭하면 기존 강제 타겟팅을 해제하여 자동 반격 모드로 전환
+            if (combat != null) combat.SetManualTarget(null);
+
+            NavMeshPath path = new NavMeshPath();
+            if (_agent.CalculatePath(targetPos, path))
+            {
+                _agent.SetPath(path);
+            }
         }
     }
 
@@ -200,6 +205,22 @@ public class PlayerMovement : MonoBehaviour
         {
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(_agent.destination, 0.2f);
+        }
+
+        // 공격 범위 시각화
+        UnitStat stat = GetComponent<UnitStat>();
+        if (stat != null)
+        {
+            // 선택되었을 때만 범위를 보고 싶다면 if (_isSelected)를 감싸주세요.
+            if (_isSelected)
+            {
+                // 공격 범위 원의 색상 설정 (반투명한 빨간색)
+                Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+
+                // 유닛 위치를 중심으로 원 그리기
+                // 2D에서는 DrawWireSphere가 가장 간편합니다.
+                Gizmos.DrawWireSphere(transform.position, stat.AttackRange);
+            }
         }
     }
 }
