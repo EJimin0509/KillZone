@@ -13,6 +13,7 @@ public class PlayerMovement : MonoBehaviour
     private bool _isSelected = false; // 1번 과정으로 유닛이 선택되었는지 확인하기 위한 bool
     private SpriteRenderer _spriteRenderer; // 좌우 반전 로직을 위한 스프라이트 가져오기
     private bool _isLeftClickPending = false; // 클릭 신호를 담을 변수
+    private UnitCombat _unitCombat; // 컴포넌트 참조용 추가
 
     // UI 및 이팩트
     //[Header("Settings")]
@@ -25,6 +26,7 @@ public class PlayerMovement : MonoBehaviour
     {
         _agent = GetComponent<NavMeshAgent>(); // NavMesh 참조
         _spriteRenderer = GetComponent<SpriteRenderer>(); // 스프라이트 참조
+        _unitCombat = GetComponent<UnitCombat>(); // UnitCombat.cs 참조
 
         // 2D이므로 회전축 고정
         _agent.updateRotation = false;
@@ -37,7 +39,13 @@ public class PlayerMovement : MonoBehaviour
         {
             // 입력 이벤트 구독
             InputManager.Instance.InputActions.Player.LeftClick.performed += _ => _isLeftClickPending = true; // 좌클릭 신호
-            InputManager.Instance.InputActions.Player.RightClick.performed += _ => TryMove(); // 마우스 우클릭
+            InputManager.Instance.InputActions.Player.RightClick.performed += ctx => // 마우스 우클릭
+            {
+                if(_isSelected) // 선택 될 상태일 때만 이동을 시도
+                { 
+                    TryMove(); 
+                }
+            };
         }
         else
         {
@@ -64,12 +72,12 @@ public class PlayerMovement : MonoBehaviour
             _isLeftClickPending = false; // 처리 후 신호 초기화
         }
 
-        FlipSprite(); // 좌우 반전
+        HandleSpriteFlip(); // 좌우 반전
     }
 
     /// <summary>
     /// 1. 플레이어 좌클릭(선택)
-    /// 
+    /// 2. 다른 곳 좌클릭 시 해제
     /// </summary>
     private void TrySelectOrDeselect()
     {
@@ -120,26 +128,31 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private void TryMove()
     {
-        if (!_isSelected) return;
-
-        Vector2 mousePos = GetMouseWorldPos();
-        RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, unitLayer);
-        UnitCombat combat = GetComponent<UnitCombat>();
-
-        if (hit.collider != null && hit.collider.CompareTag("Enemy"))
+        // 에이전트가 활성화 상태이고 NavMesh 위에 있을 때만 이동 명령 수행
+        if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh)
         {
-            // 적 클릭: 추적 공격 (이동 우선 false)
-            if (combat != null) combat.SetManualCommand(hit.collider.gameObject, false);
+            Debug.LogWarning($"{gameObject.name}: NavMeshAgent가 준비되지 않아 이동할 수 없습니다.");
+            return;
         }
-        else
-        {
-            // 빈 땅 클릭: 이동 우선 (전투보다 이동이 먼저)
-            if (combat != null) combat.SetManualCommand(null, true);
 
-            NavMeshPath path = new NavMeshPath();
-            if (_agent.CalculatePath(new Vector3(mousePos.x, mousePos.y, 0), path))
+        Vector2 mousePos = InputManager.Instance.InputActions.Player.Point.ReadValue<Vector2>();
+        Vector3 targetPos = Camera.main.ScreenToWorldPoint(mousePos);
+        targetPos.z = 0;
+
+        // UI 클릭 방지
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+
+        NavMeshPath path = new NavMeshPath();
+
+        if (_agent.CalculatePath(targetPos, path))
+        {
+            _agent.SetPath(path);
+
+            // 이동 명령을 내렸으므로 전투 스크립트에 강제 이동 상태임을 알림
+            UnitCombat combat = GetComponent<UnitCombat>();
+            if (combat != null)
             {
-                _agent.SetPath(path);
+                combat.SetManualCommand(null, true);
             }
         }
     }
@@ -158,8 +171,15 @@ public class PlayerMovement : MonoBehaviour
     /// 좌우반전 메서드
     /// 현재 속도의 x값이 0.01f를 기준으로 좌우 반전을 판단
     /// </summary>
-    private void FlipSprite()
+    private void HandleSpriteFlip()
     {
+        // 공격 타겟이 있고 강제 이동 중이 아니라면 타겟을 바라봄
+        if (_unitCombat != null && _unitCombat.CurrentTarget != null && !_unitCombat.IsForceMoving)
+        {
+            _spriteRenderer.flipX = _unitCombat.CurrentTarget.transform.position.x < transform.position.x;
+            return;
+        }
+
         // 아주 미세한 떨림으로 인해 반전되는 것을 방지하기 위해 0.01f 사용
         if (_agent.velocity.x > 0.01f)
         {

@@ -110,6 +110,7 @@ public class UnitStat : MonoBehaviour
         // Raw 대미지 값 - Defense(방어력) 값
         float finalDamage = Mathf.Max(rawDamage - Defense, 1f);
         CurrentHp -= finalDamage;
+        Debug.Log($"유닛 남은 체력: {CurrentHp}");
 
         // 넉백 실행
         if (gameObject.activeSelf && !_isKnockbacking)

@@ -11,15 +11,16 @@ public class UnitCombat : MonoBehaviour
 {
     private UnitStat _myStat; // 유닛의 Stat 데이터 참조
     private NavMeshAgent _agent; // 유닛이 NaveMesh 사용 중이므로 NaveMesh 참조
-    private GameObject _currentTarget; // 현재 공격중인 타겟을 담을 변수
     private float _lastAttackTime; // 공격 속도
-    private bool _isForceMoving = false; // 현재 유닛이 강제 이동 명령을 받았는지 확인
     private float _scanTimer; // 스캔 탐색용 타이머
+    
+    public bool IsForceMoving = false; // 현재 유닛이 강제 이동 명령을 받았는지 확인
+    public GameObject CurrentTarget; // 현재 공격중인 타겟을 담을 변수
 
     [Header("Combat Settings")]
     [SerializeField] private LayerMask enemyLayer;      // 적 유닛의 레이어
     [SerializeField] private float scanInterval = 0.2f; // 타겟 탐색 주기
-    
+
     private void Awake()
     {
         _myStat = GetComponent<UnitStat>(); // UnitStat 컴포넌트 참조
@@ -31,8 +32,17 @@ public class UnitCombat : MonoBehaviour
         // 사망 상태라면 리턴
         if (_myStat.CurrentHp <= 0) return;
 
+        // 강제 이동 중 목적지에 도착했다면 다시 전투 모드로 복귀
+        if (IsForceMoving && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
+        {
+            if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
+            {
+                IsForceMoving = false; // 강제 이동 완료 -> 다시 자동 사냥 시작
+            }
+        }
+
         // 1. 스캔 타이머 가동
-        _scanTimer -= Time.deltaTime;
+        if (_scanTimer > 0)  _scanTimer -= Time.deltaTime;
 
         // 2. 타겟 상태 업데이트 및 추적 로직
         HandleCombatAI();
@@ -45,8 +55,11 @@ public class UnitCombat : MonoBehaviour
     /// </summary>
     private void HandleCombatAI()
     {
+        // 에이전트가 활성화되어 있고 NavMesh 위에 있을 때만 제어
+        bool canControlAgent = _agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh;
+
         // 강제 이동 중이거나 타겟이 없으면 자동 탐색
-        if (_currentTarget == null)
+        if (CurrentTarget == null)
         {
             if (_scanTimer <= 0)              // 스캔 가능 할 때
             {
@@ -57,33 +70,34 @@ public class UnitCombat : MonoBehaviour
         }
 
         // 타겟의 생존 여부 확인
-        UnitStat targetStat = _currentTarget.GetComponent<UnitStat>();
-        if (targetStat == null || targetStat.CurrentHp <= 0) // 타겟이 없거나 사망
+        EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
+        if (targetEnemy == null || targetEnemy.CurrentHp <= 0) // 타겟이 없거나 사망
         {
             ResetCombat(); // 전투 종료 후 상태 초기화
             return;        // 리턴
         }
 
         // 타겟과 유닛 사이의 거리 Vector2
-        float dist = Vector2.Distance(transform.position, _currentTarget.transform.position);
+        float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
 
         // 3. 사거리 및 추적 로직
         if (dist <= _myStat.AttackRange)
         {
-            // 사거리 안이면 정지 후 공격
-            if (!_isForceMoving)
+            // 사거리 안이면 정지
+            if (!IsForceMoving && canControlAgent)
             {
                 _agent.isStopped = true; // 정지
-                TryAttack(targetStat);   // 공격
             }
+
+            TryAttack(targetEnemy);      // 공격
         }
         else
         {
             // 사거리 밖이고 강제 이동 중이 아니라면 추격
-            if (!_isForceMoving)
+            if (!IsForceMoving && canControlAgent)
             {
                 _agent.isStopped = false;
-                _agent.SetDestination(_currentTarget.transform.position); // 새로운 경로 설정
+                _agent.SetDestination(CurrentTarget.transform.position); // 새로운 경로 설정
             }
         }
     }
@@ -93,8 +107,8 @@ public class UnitCombat : MonoBehaviour
     /// </summary>
     public void ResetCombat()
     {
-        _currentTarget = null; // 타겟 NULL
-        _isForceMoving = false; // 정지
+        CurrentTarget = null; // 타겟 NULL
+        IsForceMoving = false; // 정지
     }
 
     /// <summary>
@@ -102,15 +116,38 @@ public class UnitCombat : MonoBehaviour
     /// </summary>
     private void SearchTarget()
     {
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, _myStat.AttackRange, enemyLayer);
-        if (hit != null) _currentTarget = hit.gameObject;
+        // enemyLayer에 속한 오브젝트 찾기
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _myStat.AttackRange, enemyLayer);
+
+        float closestDist = float.MaxValue;
+        GameObject closestEnemy = null;
+
+        foreach (var hit in hits)
+        {
+            // 태그가 "Enemy"인지 확인
+            if (hit.CompareTag("Enemy"))
+            {
+                // EnemyAI 컴포넌트가 있고 살아있는지 확인
+                EnemyAI enemy = hit.GetComponent<EnemyAI>();
+                if (enemy != null && enemy.CurrentHp > 0)
+                {
+                    float dist = Vector2.Distance(transform.position, hit.transform.position);
+                    if (dist < closestDist)
+                    {
+                        closestDist = dist;
+                        closestEnemy = hit.gameObject;
+                    }
+                }
+            }
+        }
+        CurrentTarget = closestEnemy;
     }
 
     /// <summary>
     /// 1. 공격 속도에 맞춰 적을 공격한다.
     /// </summary>
     /// <param name="target">공격 대상</param>
-    private void TryAttack(UnitStat target)
+    private void TryAttack(EnemyAI target)
     {
         if (Time.time >= _lastAttackTime + (1f / _myStat.AttackSpeed)) // 공격 속도 체크
         {
@@ -133,8 +170,13 @@ public class UnitCombat : MonoBehaviour
     /// <param name="isMoveCommand">다른 이동 명령이 부여되었는지</param>
     public void SetManualCommand(GameObject target, bool isMoveCommand)
     {
-        _currentTarget = target;
-        _isForceMoving = isMoveCommand;
-        _agent.isStopped = false;
+        CurrentTarget = target;
+        IsForceMoving = isMoveCommand;
+
+        // 에이전트 가동 상태 체크
+        if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
+        {
+            _agent.isStopped = false;
+        }
     }
 }
