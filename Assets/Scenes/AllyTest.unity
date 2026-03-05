@@ -336,7 +336,6 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64
-  knockbackForce: 1
   scanInterval: 0.2
 --- !u!195 &118770009
 NavMeshAgent:

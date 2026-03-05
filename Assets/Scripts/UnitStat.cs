@@ -1,30 +1,34 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AI;
 
 public class UnitStat : MonoBehaviour
 {
-    public UnitData data;
-    public EquipmentData currentWeapon;
-    public EquipmentData currentHelm;
-    public EquipmentData currentChest;
+    public UnitData data; // 유닛 데이터
+    public EquipmentData currentWeapon; // 착용 무기
+    public EquipmentData currentHelm; // 착용 헬름
+    public EquipmentData currentChest; // 착용 갑옷
 
     // 유닛 생성기에 의해 할당될 베이스 단계들 (기본 1단계 초기화)
     public Dictionary<StatBonusType, int> baseLevels = new Dictionary<StatBonusType, int>();
 
+    private bool _isKnockbacking = false;                // 지금 넉백 중인지 판단
+    
     [Range(1, 10)] public int baseStatLevel = 1; // 테스트용 통합 레벨
 
-    public float MaxHp { get; private set; }
-    public float CurrentHp { get; private set; }
-    public float AttackPower { get; private set; }
-    public float AttackRange { get; private set; }
-    public float AttackSpeed { get; private set; }
-    public float Defense { get; private set; }
+    public float MaxHp { get; private set; }             // 최대 HP
+    public float CurrentHp { get; private set; }         // 현재 HP
+    public float AttackPower { get; private set; }       // 공격력
+    public float AttackRange { get; private set; }       // 공격 범위
+    public float AttackSpeed { get; private set; }       // 공격 속도
+    public float Defense { get; private set; }           // 방어력
 
     // 보조 스탯들
-    public float RangeAccuracy { get; private set; }
-    public float RepairSpeed { get; private set; }
-    public float HealSpeed { get; private set; }
-    public float MentalValue { get; private set; }
+    public float RangeAccuracy { get; private set; }     // 명중률
+    public float RepairSpeed { get; private set; }       // 수리 속도
+    public float HealSpeed { get; private set; }         // 치료 속도
+    public float MentalValue { get; private set; }       // 정신력
 
     private void Awake()
     {
@@ -33,9 +37,12 @@ public class UnitStat : MonoBehaviour
         {
             if (!baseLevels.ContainsKey(type)) baseLevels[type] = 1;
         }
-        RefreshStats();
+        RefreshStats(); // 스탯 초기화
     }
 
+    /// <summary>
+    /// 스탯 초기화 메서드
+    /// </summary>
     public void RefreshStats()
     {
         if (data == null) return;
@@ -67,6 +74,12 @@ public class UnitStat : MonoBehaviour
         if (CurrentHp <= 0) CurrentHp = MaxHp;
     }
 
+    /// <summary>
+    /// 스탯을 기반으로 보너스 계산하는 메서드
+    /// </summary>
+    /// <param name="baseValue">기존 스탯 Value</param>
+    /// <param name="type">스탯의 종류</param>
+    /// <returns></returns>
     private float CalculateFinalStat(float baseValue, StatBonusType type)
     {
         // 1. 유닛의 베이스 단계 가져오기
@@ -79,19 +92,60 @@ public class UnitStat : MonoBehaviour
             totalLevel += bonus.bonusLevel;
         }
 
-        // [수정] 아무리 합산되어도 10단계를 넘기지 않음
+        // 무리 합산되어도 10단계를 넘기지 않음
         totalLevel = Mathf.Clamp(totalLevel, 1, 10);
 
         float multiplier = 1f + (totalLevel - 1) * data.upgradeMultiplier;
         return baseValue * multiplier;
     }
 
-    public void TakeDamage(float rawDamage)
+    /// <summary>
+    /// 대미지 입는 메서드
+    /// </summary>
+    /// <param name="rawDamage">대미지 감소 전 Raw 값</param>
+    /// <param name="attackerPos">공격자 위치</param>
+    public void TakeDamage(float rawDamage, Vector2 attackerPos)
     {
+        // 현재 대미지 감소 로직
+        // Raw 대미지 값 - Defense(방어력) 값
         float finalDamage = Mathf.Max(rawDamage - Defense, 1f);
         CurrentHp -= finalDamage;
-        Debug.Log("Hit!");
+
+        // 넉백 실행
+        if (gameObject.activeSelf && !_isKnockbacking)
+        {
+            StartCoroutine(KnockbackRoutine(attackerPos));
+        }
+
         if (CurrentHp <= 0) Die();
+    }
+
+    /// <summary>
+    /// 넉백 코루틴
+    /// </summary>
+    /// <param name="attackerPos">공격자 위치</param>
+    /// <returns></returns>
+    private IEnumerator KnockbackRoutine(Vector2 attackerPos)
+    {
+        _isKnockbacking = true;
+        NavMeshAgent agent = GetComponent<NavMeshAgent>();
+
+        if (agent != null) agent.enabled = false; // NavMesh와 Rigidbody 충돌 방지
+
+        Vector2 knockbackDir = ((Vector2)transform.position - attackerPos).normalized; // 공격 방향 벡터
+        float force = 1f; // 넉백 강도
+        float duration = 0.5f; // 넉백 쿨타임
+        float elapsed = 0f; // 넉백 쿨타임 체크용 변수
+
+        while (elapsed < duration) // 넉백 시간 이내라면
+        {
+            transform.Translate(knockbackDir * force * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (agent != null) agent.enabled = true;
+        _isKnockbacking = false;
     }
 
     private void Die() => gameObject.SetActive(false);

@@ -123,30 +123,21 @@ public class PlayerMovement : MonoBehaviour
         if (!_isSelected) return;
 
         Vector2 mousePos = GetMouseWorldPos();
-        Vector3 targetPos = new Vector3(mousePos.x, mousePos.y, 0f);
-
-        // 적 레이어 체크
         RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, unitLayer);
         UnitCombat combat = GetComponent<UnitCombat>();
 
-        // [핵심] 새로운 이동 명령이 들어오면 에이전트를 강제로 활성화
-        _agent.isStopped = false;
-
         if (hit.collider != null && hit.collider.CompareTag("Enemy"))
         {
-            Debug.Log($"[명령] 적 추적 공격: {hit.collider.name}");
-            if (combat != null) combat.SetManualTarget(hit.collider.gameObject);
-            _agent.SetDestination(hit.collider.transform.position);
+            // 적 클릭: 추적 공격 (이동 우선 false)
+            if (combat != null) combat.SetManualCommand(hit.collider.gameObject, false);
         }
         else
         {
-            Debug.Log($"[명령] 일반 이동: {targetPos}");
-
-            // 땅을 클릭하면 기존 강제 타겟팅을 해제하여 자동 반격 모드로 전환
-            if (combat != null) combat.SetManualTarget(null);
+            // 빈 땅 클릭: 이동 우선 (전투보다 이동이 먼저)
+            if (combat != null) combat.SetManualCommand(null, true);
 
             NavMeshPath path = new NavMeshPath();
-            if (_agent.CalculatePath(targetPos, path))
+            if (_agent.CalculatePath(new Vector3(mousePos.x, mousePos.y, 0), path))
             {
                 _agent.SetPath(path);
             }
