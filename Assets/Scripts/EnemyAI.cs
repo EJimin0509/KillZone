@@ -37,6 +37,38 @@ public class EnemyAI : MonoBehaviour
         // 모든 적이 동시에 길찾기를 연산하지 않도록 첫 업데이트 시간을 랜덤하게 분산
         _nextUpdateTime = Time.time + Random.Range(0f, _pathUpdateInterval);
     }
+    
+    // 오브젝트 풀 초기화
+    private void OnEnable()
+    {
+        // 체력 및 상태 초기화
+        if (data != null) CurrentHp = data.maxHp;
+        _isKnockbacking = false;
+        _currentTarget = null;
+        _pathIndex = 0;
+        _pathCorners = null;
+        _nextUpdateTime = Time.time;
+
+        // NavMeshAgent 재활성화 및 위치 보정
+        NavMeshAgent agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.enabled = false; // 위치를 옮기기 위해 잠시 끔
+            StartCoroutine(ResetAgentRoutine(agent));
+        }
+    }
+
+    private IEnumerator ResetAgentRoutine(NavMeshAgent agent)
+    {
+        yield return null; // 한 프레임 대기 (위치가 셋팅된 후 활성화하기 위함)
+        agent.enabled = true;
+
+        // 에이전트가 베이크된 바닥 위로 강제 스냅
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
+        {
+            agent.Warp(hit.position);
+        }
+    }
 
     private void Update()
     {
@@ -169,7 +201,17 @@ public class EnemyAI : MonoBehaviour
 
     private void Die()
     {
-        Destroy(gameObject);
+        // 죽는 로직
+
+        // 오브젝트 풀 반납
+        if (SimpleObjectPool.Instance != null)
+        {
+            SimpleObjectPool.Instance.ReturnToPool(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void HandleTargeting()
