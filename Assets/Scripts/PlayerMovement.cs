@@ -55,6 +55,9 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        // 건설 단계라면 유닛 조작(선택/이동) 불가
+        if (BuildManager.Instance != null && BuildManager.Instance.IsBuildingPhase) return;
+
         if (!_agent.isOnNavMesh || !_agent.isActiveAndEnabled) return; // 선택 중이 아니라면 리턴
 
         // 이동 중인데 경로가 끊겼거나 더 이상 갈 수 없다면 중지
