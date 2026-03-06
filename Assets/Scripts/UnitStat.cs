@@ -10,6 +10,11 @@ public class UnitStat : MonoBehaviour
     public EquipmentData currentHelm; // 착용 헬름
     public EquipmentData currentChest; // 착용 갑옷
 
+    [Header("Visual Knockback")]
+    [SerializeField] private Transform visualChild; // 밀려나는 것 처럼 보이게 할 자식 오브젝트
+    [SerializeField] private float knockbackDistance = 0.3f; // 밀려나는 거리
+    [SerializeField] private float knockbackDuration = 0.2f; // 복귀까지 걸리는 시간
+
     // 유닛 생성기에 의해 할당될 베이스 단계들 (기본 1단계 초기화)
     public Dictionary<StatBonusType, int> baseLevels = new Dictionary<StatBonusType, int>();
 
@@ -128,24 +133,38 @@ public class UnitStat : MonoBehaviour
     /// <returns></returns>
     private IEnumerator KnockbackRoutine(Vector2 attackerPos)
     {
+        if (visualChild == null) yield break; // 자식 오브젝트 없으면 리턴
+
         _isKnockbacking = true;
-        NavMeshAgent agent = GetComponent<NavMeshAgent>();
 
-        if (agent != null) agent.enabled = false; // NavMesh와 Rigidbody 충돌 방지
+        // 방향 계산 (공격자로부터 반대 방향)
+        Vector2 dir = ((Vector2)transform.position - attackerPos).normalized;
+        Vector3 startPos = Vector3.zero; // 로컬 위치이므로 0
+        Vector3 targetPos = new Vector3(dir.x, dir.y, 0) * knockbackDistance;
 
-        Vector2 knockbackDir = ((Vector2)transform.position - attackerPos).normalized; // 공격 방향 벡터
-        float force = 1f; // 넉백 강도
-        float duration = 0.5f; // 넉백 쿨타임
-        float elapsed = 0f; // 넉백 쿨타임 체크용 변수
+        float elapsed = 0f; // 타이머 초기화
 
-        while (elapsed < duration) // 넉백 시간 이내라면
+        // 뒤로 밀리기
+        while (elapsed < knockbackDuration * 0.5f)
         {
-            transform.Translate(knockbackDir * force * Time.deltaTime);
             elapsed += Time.deltaTime;
+            float t = elapsed / (knockbackDuration * 0.5f);
+            visualChild.localPosition = Vector3.Lerp(startPos, targetPos, t);
             yield return null;
         }
 
-        if (agent != null) agent.enabled = true;
+        elapsed = 0f; // 타이머 초기화
+
+        // 제자리로 복귀
+        while (elapsed < knockbackDuration * 0.5f)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / (knockbackDuration * 0.5f);
+            visualChild.localPosition = Vector3.Lerp(targetPos, startPos, t);
+            yield return null;
+        }
+
+        visualChild.localPosition = startPos; // 위치 초기화
         _isKnockbacking = false;
     }
 

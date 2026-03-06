@@ -10,6 +10,11 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private EnemyData data; // 적 기본 데이터(ScriptableObject)
     private SpriteRenderer _spriteRenderer;
 
+    [Header("Visual Knockback")]
+    [SerializeField] private Transform visualChild; // 자식 오브젝트인 Visual을 드래그 앤 드롭
+    [SerializeField] private float knockbackDistance = 0.3f; // 밀려나는 거리
+    [SerializeField] private float knockbackDuration = 0.2f; // 복귀까지 걸리는 시간
+
     public float CurrentHp; // 현재 체력 (아군 UnitCombat에서 참조함)
     private float _lastAttackTime; // 마지막 공격 시점
     private bool _isKnockbacking = false; // 현재 넉백 중인지 여부
@@ -26,7 +31,7 @@ public class EnemyAI : MonoBehaviour
 
     private void Awake()
     {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>(); // 자식 스프라이트 렌더러 참조
 
         // 데이터가 존재할 경우 초기 체력 설정
         if (data != null) CurrentHp = data.maxHp;
@@ -182,20 +187,38 @@ public class EnemyAI : MonoBehaviour
     /// </summary>
     private IEnumerator KnockbackRoutine(Vector2 attackerPos)
     {
+        if (visualChild == null) yield break; // 자식 오브젝트 없으면 리턴
+
         _isKnockbacking = true;
-        Vector2 knockbackDir = ((Vector2)transform.position - attackerPos).normalized;
 
-        float elapsed = 0f;
-        float duration = 0.15f;
-        float force = 1.5f;
+        // 방향 계산 (공격자로부터 반대 방향)
+        Vector2 dir = ((Vector2)transform.position - attackerPos).normalized;
+        Vector3 startPos = Vector3.zero; // 로컬 위치이므로 0
+        Vector3 targetPos = new Vector3(dir.x, dir.y, 0) * knockbackDistance;
 
-        while (elapsed < duration)
+        float elapsed = 0f; // 타이머 초기화
+
+        // 뒤로 밀리기
+        while (elapsed < knockbackDuration * 0.5f)
         {
-            transform.Translate(knockbackDir * force * Time.deltaTime);
             elapsed += Time.deltaTime;
+            float t = elapsed / (knockbackDuration * 0.5f);
+            visualChild.localPosition = Vector3.Lerp(startPos, targetPos, t);
             yield return null;
         }
 
+        elapsed = 0f; // 타이머 초기화
+
+        // 제자리로 복귀
+        while (elapsed < knockbackDuration * 0.5f)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / (knockbackDuration * 0.5f);
+            visualChild.localPosition = Vector3.Lerp(targetPos, startPos, t);
+            yield return null;
+        }
+
+        visualChild.localPosition = startPos; // 위치 초기화
         _isKnockbacking = false;
     }
 

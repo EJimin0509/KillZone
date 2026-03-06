@@ -25,7 +25,7 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>(); // NavMesh 참조
-        _spriteRenderer = GetComponent<SpriteRenderer>(); // 스프라이트 참조
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>(); // 자식 스프라이트 참조
         _unitCombat = GetComponent<UnitCombat>(); // UnitCombat.cs 참조
 
         // 2D이므로 회전축 고정
