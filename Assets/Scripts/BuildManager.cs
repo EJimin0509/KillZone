@@ -1,73 +1,112 @@
 using UnityEngine;
 using UnityEngine.AI;
+using TMPro;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class BuildManager : MonoBehaviour
 {
     public static BuildManager Instance;
 
-    [Header("Settings")]
-    [SerializeField] private GameObject wallPrefab; // 방어벽 프리팹
-    [SerializeField] private int maxCost = 100;      // 최대 코스트
+    [Header("Building Settings")]
+    [SerializeField] private GameObject wallPrefab;
+    [SerializeField] private int maxCost = 100;
+    [SerializeField] private int wallCost = 10;
     private int _currentCost;
 
-    [Header("Reference")]
-    [SerializeField] private Transform baseTransform; // DefenseBase 위치
-    [SerializeField] private Transform enemySpawnPoint; // 적 스폰 위치 (대표 지점 하나)
+    [Header("Layer Settings")]
+    [SerializeField] private LayerMask buildAreaLayer; // 새 타일맵(건설가능구역) 레이어
+    [SerializeField] private LayerMask obstacleLayer;  // 벽 중복 설치 방지 레이어
 
-    public bool IsBuildingPhase = true; // 웨이브 전 건설 단계 여부
+    [Header("Path Check Settings")]
+    [SerializeField] private Transform enemySpawnPoint;
+    [SerializeField] private Transform defenseBase;
 
-    private void Awake() => Instance = this;
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI costText;
+    [SerializeField] private Button startButton;
+
+    public bool IsBuildingPhase { get; private set; } = true;
+
+    private void Awake()
+    {
+        Instance = this;
+        _currentCost = maxCost;
+    }
+
+    private void Start()
+    {
+        UpdateCostUI();
+        if (startButton != null)
+            startButton.onClick.AddListener(OnClickStartWave);
+    }
 
     private void Update()
     {
         if (!IsBuildingPhase) return;
 
-        if (Input.GetMouseButtonDown(0)) // 좌클릭 설치
+        // PlayerMovement.cs와 동일하게 InputManager의 LeftClick 액션 사용
+        if (InputManager.Instance.InputActions.Player.LeftClick.WasPerformedThisFrame())
         {
-            HandleBuild();
+            // UI 위를 클릭하고 있다면 건설 무시
+            if (EventSystem.current.IsPointerOverGameObject()) return;
+
+            TryPlaceWall();
         }
     }
 
-    private void HandleBuild()
+    private void TryPlaceWall()
     {
-        // 1. 마우스 위치를 그리드(타일) 좌표로 변환
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector3Int gridPos = new Vector3Int(Mathf.RoundToInt(mousePos.x), Mathf.RoundToInt(mousePos.y), 0);
+        if (_currentCost < wallCost) return;
 
-        // 2. 코스트 체크 (벽 하나당 10이라 가정)
-        if (_currentCost + 10 > maxCost) return;
+        // Point 액션에서 마우스 화면 좌표 읽기
+        Vector2 mouseScreenPos = InputManager.Instance.InputActions.Player.Point.ReadValue<Vector2>();
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
 
-        // 3. 임시로 벽을 설치해보고 경로가 끊기는지 테스트
-        if (CanReachBase(gridPos))
+        // 타일 그리드 좌표로 스냅 (정수 단위)
+        Vector3 spawnPos = new Vector3(Mathf.Round(mouseWorldPos.x), Mathf.Round(mouseWorldPos.y), 0);
+
+        // 1. 건설 가능 타일맵 레이어 체크
+        Collider2D buildAreaHit = Physics2D.OverlapPoint(spawnPos, buildAreaLayer);
+        if (buildAreaHit == null) return;
+
+        // 2. 이미 벽이 있는지 체크
+        Collider2D obstacleHit = Physics2D.OverlapPoint(spawnPos, obstacleLayer);
+        if (obstacleHit != null) return;
+
+        // 3. 경로 차단 검사 (길이 완전히 막히는지 확인)
+        if (IsPathAvailable())
         {
-            Instantiate(wallPrefab, (Vector3)gridPos, Quaternion.identity);
-            _currentCost += 10;
-            Debug.Log($"설치 완료! 현재 코스트: {_currentCost}/{maxCost}");
+            Instantiate(wallPrefab, spawnPos, Quaternion.identity);
+            _currentCost -= wallCost;
+            UpdateCostUI();
         }
         else
         {
-            Debug.Log("길을 완전히 막을 수 없습니다!");
+            Debug.LogWarning("길을 완전히 막을 수 없습니다!");
         }
     }
 
-    /// <summary>
-    /// 특정 위치에 벽을 세웠을 때 적이 베이스까지 올 수 있는지 검사
-    /// </summary>
-    private bool CanReachBase(Vector3 testPos)
+    private bool IsPathAvailable()
     {
+        // 현재 NavMesh 상태에서 적 스폰지점 -> 베이스까지 경로 계산
         NavMeshPath path = new NavMeshPath();
+        NavMesh.CalculatePath(enemySpawnPoint.position, defenseBase.position, NavMesh.AllAreas, path);
 
-        // NavMesh.CalculatePath를 사용해 스폰 지점에서 베이스까지 경로가 생성되는지 확인
-        // NavMesh.AllAreas를 사용해야 Not Walkable을 피해서 경로를 찾음
-        NavMesh.CalculatePath(enemySpawnPoint.position, baseTransform.position, NavMesh.AllAreas, path);
-
-        // 경로의 상태가 Complete(도달 가능)일 때만 true 반환
+        // 경로가 끊기지 않고 완전한 상태인지 확인
         return path.status == NavMeshPathStatus.PathComplete;
     }
 
-    public void StartWave()
+    private void UpdateCostUI()
+    {
+        if (costText != null)
+            costText.text = $"Cost: {_currentCost} / {maxCost}";
+    }
+
+    public void OnClickStartWave()
     {
         IsBuildingPhase = false;
-        // 여기에 웨이브 시작 이벤트 호출 (EnemySpawner 활성화 등)
+        if (startButton != null) startButton.gameObject.SetActive(false);
+        Debug.Log("건설 종료 - 웨이브가 시작됩니다.");
     }
 }
