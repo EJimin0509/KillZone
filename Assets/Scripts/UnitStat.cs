@@ -52,12 +52,12 @@ public class UnitStat : MonoBehaviour
     {
         if (data == null) return;
 
-        MaxHp = CalculateFinalStat(data.baseHp, StatBonusType.Hp);
-        AttackPower = CalculateFinalStat(data.baseAttackPower, StatBonusType.AttackPower);
-        RangeAccuracy = CalculateFinalStat(data.baseRangeAccuracy, StatBonusType.RangeAccuracy);
-        RepairSpeed = CalculateFinalStat(data.baseRepairSpeed, StatBonusType.RepairSpeed);
-        HealSpeed = CalculateFinalStat(data.baseHealSpeed, StatBonusType.HealSpeed);
-        MentalValue = CalculateFinalStat(data.baseMentalValue, StatBonusType.MentalValue);
+        MaxHp = CalculateFinalStat(data.hp, StatBonusType.Hp);
+        AttackPower = CalculateFinalStat(data.melee, StatBonusType.AttackPower);
+        RangeAccuracy = CalculateFinalStat(data.range, StatBonusType.RangeAccuracy);
+        RepairSpeed = CalculateFinalStat(data.repair, StatBonusType.RepairSpeed);
+        HealSpeed = CalculateFinalStat(data.medic, StatBonusType.HealSpeed);
+        MentalValue = CalculateFinalStat(data.faith, StatBonusType.MentalValue);
 
         // [무기 체크] 무기가 없으면 기본 근접 수치 적용
         if (currentWeapon != null)
