@@ -103,10 +103,23 @@ public class BuildManager : MonoBehaviour
             costText.text = $"Cost: {_currentCost} / {maxCost}";
     }
 
+    /// <summary>
+    /// 버튼으로 웨이브 시작
+    /// </summary>
     public void OnClickStartWave()
     {
+        if (!IsBuildingPhase) return; // 이미 시작됐다면 리턴
+
         IsBuildingPhase = false;
         if (startButton != null) startButton.gameObject.SetActive(false);
+
+        // EnemySpawner 스크립트에서 StartWaveSystem 호출하여 웨이브 시작
+        EnemySpawner spawner = FindAnyObjectByType<EnemySpawner>();
+        if (spawner != null)
+        {
+            spawner.StartWaveSystem();
+        }
+
         Debug.Log("건설 종료 - 웨이브가 시작됩니다.");
     }
 }

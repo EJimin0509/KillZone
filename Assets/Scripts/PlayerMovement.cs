@@ -56,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         // 건설 단계라면 유닛 조작(선택/이동) 불가
-        //if (BuildManager.Instance != null && BuildManager.Instance.IsBuildingPhase) return;
+        if (BuildManager.Instance != null && BuildManager.Instance.IsBuildingPhase) return;
 
         if (!_agent.isOnNavMesh || !_agent.isActiveAndEnabled) return; // 선택 중이 아니라면 리턴
 
@@ -188,13 +188,13 @@ public class PlayerMovement : MonoBehaviour
         {
             // 오른쪽으로 이동 중
             _spriteRenderer.flipX = false;
-            Debug.Log("오른쪽으로 플립");
+            //Debug.Log("오른쪽으로 플립");
         }
         else if (_agent.velocity.x < -0.01f)
         {
             // 왼쪽으로 이동 중
             _spriteRenderer.flipX = true;
-            Debug.Log("왼쪽으로 플립");
+            //Debug.Log("왼쪽으로 플립");
         }
     }
 

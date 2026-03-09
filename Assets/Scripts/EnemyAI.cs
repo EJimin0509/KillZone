@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.AI; // NavMesh API 사용을 위해 추가
 
 /// <summary>
-/// 다익스트라 알고리즘(NavMesh 데이터 활용)을 통해 경로 찾기 및 전투를 담당하는 적 AI
+/// A* 알고리즘(NavMesh 데이터 활용)을 통해 경로 찾기 및 전투를 담당하는 적 AI
 /// </summary>
 public class EnemyAI : MonoBehaviour
 {
@@ -42,7 +42,7 @@ public class EnemyAI : MonoBehaviour
         // 모든 적이 동시에 길찾기를 연산하지 않도록 첫 업데이트 시간을 랜덤하게 분산
         _nextUpdateTime = Time.time + Random.Range(0f, _pathUpdateInterval);
     }
-    
+
     // 오브젝트 풀 초기화
     private void OnEnable()
     {
@@ -86,80 +86,76 @@ public class EnemyAI : MonoBehaviour
         // 2. 행동 결정
         if (_currentTarget != null)
         {
+            // 타겟이 파괴되었거나 죽었는지 한 번 더 체크
+            if (!IsTargetAlive(_currentTarget))
+            {
+                _currentTarget = null;
+                return;
+            }
+
             // 타겟과의 거리 계산
             float dist = Vector2.Distance(transform.position, _currentTarget.transform.position);
 
             if (dist <= data.attackRange)
             {
                 // 공격 사거리 내에 있다면 멈춰서 공격 방향을 바라보고 공격
-                LookAtTarget(_currentTarget.transform.position);
+                HandleSpriteFlip(_currentTarget.transform.position);
                 TryAttack();
             }
             else
             {
-                // 사거리 밖이라면 타겟을 향해 이동 (근접 시에는 단순 직선 이동으로 추적)
-                MoveStraight(_currentTarget.transform.position);
+                // 사거리 밖이라면 타겟을 향해 이동
+                HandleAStarMovement();
             }
-        }
-        else
-        {
-            // 공격 대상(아군)이 없을 경우 디팬딩 구조물(Base)을 향해 지형을 회피하며 이동
-            MoveToLongDistanceTarget();
         }
     }
 
-    /// <summary>
-    /// NavMesh 데이터를 활용하여 지형(이동 불가 구역)을 회피하며 목적지로 이동
-    /// </summary>
-    private void MoveToLongDistanceTarget()
+    private void HandleAStarMovement()
     {
-        if (DefenseBase.Current == null) return;
-
-        // 성능 최적화: 정해진 주기마다만 길찾기 경로를 재계산
+        // 타겟 위치가 변하므로 주기적으로 경로 갱신
         if (Time.time >= _nextUpdateTime)
         {
-            NavMeshPath path = new NavMeshPath();
-            // 목적지까지의 경로를 계산하여 corners(꺾임점들) 배열에 저장
-            // [주의] NavMeshAgent 없이 연산만 수행하므로 부하가 적음
-            if (NavMesh.CalculatePath(transform.position, DefenseBase.Current.transform.position, NavMesh.AllAreas, path))
-            {
-                _pathCorners = path.corners;
-                _pathIndex = 1; // 0번은 현재 위치이므로 1번부터 시작
-            }
+            UpdatePath();
             _nextUpdateTime = Time.time + _pathUpdateInterval;
         }
 
-        // 계산된 경로의 점들을 하나씩 따라감
         if (_pathCorners != null && _pathIndex < _pathCorners.Length)
         {
-            Vector3 targetWayPoint = _pathCorners[_pathIndex];
-            MoveStraight(targetWayPoint);
+            Vector3 targetPos = _pathCorners[_pathIndex];
 
-            // 해당 경유점에 충분히 가까워지면 다음 경유점으로 타겟 변경
-            if (Vector2.Distance(transform.position, targetWayPoint) < 0.2f)
+            // 직접 좌표 이동으로 장애물 끼임 물리 연산 우회
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, data.moveSpeed * Time.deltaTime);
+
+            HandleSpriteFlip(targetPos);
+
+            if (Vector3.Distance(transform.position, targetPos) < 0.1f)
             {
                 _pathIndex++;
             }
         }
     }
 
-    /// <summary>
-    /// 특정 좌표를 향해 직선으로 이동하며 스프라이트 방향을 갱신
-    /// </summary>
-    private void MoveStraight(Vector3 targetPos)
+    private void UpdatePath()
     {
-        LookAtTarget(targetPos);
-        Vector2 dir = ((Vector2)targetPos - (Vector2)transform.position).normalized;
-        transform.Translate(dir * data.moveSpeed * Time.deltaTime);
+        if (_currentTarget == null) return;
+
+        NavMeshPath path = new NavMeshPath();
+        // NavMesh 데이터로부터 A* 경로만 계산해서 가져옴
+        if (NavMesh.CalculatePath(transform.position, _currentTarget.transform.position, NavMesh.AllAreas, path))
+        {
+            _pathCorners = path.corners;
+            _pathIndex = 1;
+        }
     }
 
     /// <summary>
     /// 대상의 X축 위치에 따라 스프라이트 좌우 반전
     /// </summary>
-    private void LookAtTarget(Vector2 targetPos)
+    private void HandleSpriteFlip(Vector3 targetPos)
     {
-        if (_spriteRenderer == null) return;
-        _spriteRenderer.flipX = targetPos.x < transform.position.x;
+        float diff = targetPos.x - transform.position.x;
+        if (Mathf.Abs(diff) < 0.01f) return;
+        _spriteRenderer.flipX = diff < 0;
     }
 
     /// <summary>
@@ -172,7 +168,7 @@ public class EnemyAI : MonoBehaviour
         Debug.Log($"적 체력: {CurrentHp}");
 
         // 피격 시 즉시 공격자를 돌아봄
-        LookAtTarget(attackerPos);
+        HandleSpriteFlip(attackerPos);
 
         if (gameObject.activeSelf && !_isKnockbacking)
         {
@@ -239,25 +235,57 @@ public class EnemyAI : MonoBehaviour
 
     private void HandleTargeting()
     {
-        if (_currentTarget == null || !IsTargetAlive(_currentTarget))
+        bool isTargetingUnit = _currentTarget != null && _currentTarget.CompareTag("Unit");
+
+        if (!isTargetingUnit)
         {
+            // _unitLayer를 우선적으로 타겟팅
+            // _unitLayer에는 아군 유닛 뿐만 아니라 체력이 존재하는 구조물도 포함
             Collider2D hit = Physics2D.OverlapCircle(transform.position, data.attackRange * 2f, _unitLayer);
-            if (hit != null) _currentTarget = hit.gameObject;
-            else _currentTarget = null;
+            
+            if (hit != null)
+            {
+                // 유닛을 발견하면 즉시 타겟 교체 및 경로 갱신
+                _currentTarget = hit.gameObject;
+                UpdatePath();
+                return; // 유닛을 잡았으므로 아래 Base 설정 로직 건너뜀
+            }
+        }
+
+        // 유닛을 타겟팅 중이 아니거나, 기존 타겟이 죽었다면 Base로 설정
+        if (!IsTargetAlive(_currentTarget))
+        {
+            if (DefenseBase.Current != null)
+            {
+                _currentTarget = DefenseBase.Current.gameObject;
+                UpdatePath();
+            }
+            else
+            {
+                _currentTarget = null;
+            }
         }
     }
 
     private bool IsTargetAlive(GameObject target)
     {
+        // 1. 오브젝트 자체가 null이거나 파괴되었는지 체크
+        if (target == null) return false;
+
+        // 2. 유닛인 경우 체력 체크
         var unit = target.GetComponent<UnitStat>();
         if (unit != null) return unit.CurrentHp > 0;
 
+        // 3. 베이스인 경우 체력 체크
         var b = target.GetComponent<DefenseBase>();
         if (b != null) return b.currentHp > 0;
 
         return false;
     }
 
+    /// <summary>
+    /// 유닛이나 Base일 경우 공격하는 메서드
+    /// </summary>
     private void TryAttack()
     {
         if (Time.time >= _lastAttackTime + (1f / data.attackSpeed))

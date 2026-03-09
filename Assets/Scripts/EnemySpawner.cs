@@ -23,11 +23,18 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnY; // 스폰 Y 좌표 (고정)
 
     private int _remainingEnemiesInWave;
+    private bool _isSpawnerStarted = false; // 웨이브 시작 여부
 
-    private void Start()
+    /// <summary>
+    /// 웨이브 시작을 외부에서 호출하기 위한 메서드
+    /// </summary>
+    public void StartWaveSystem()
     {
-        if (waves.Count > 0)
+        if (_isSpawnerStarted) return; // 이미 시작되었다면 리턴
+
+        if (waves.Count > 0 && _currentWaveIndex == 0)
         {
+            _isSpawnerStarted = true;
             StartCoroutine(StartWave(_currentWaveIndex));
         }
     }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 292876603697331289}
   - component: {fileID: 5973916192066161089}
   - component: {fileID: 2491494970746615110}
-  - component: {fileID: 6766289670104037927}
+  - component: {fileID: -5124255162217031804}
   m_Layer: 8
   m_Name: Wall
   m_TagString: Untagged
@@ -139,7 +139,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!208 &6766289670104037927
+--- !u!208 &-5124255162217031804
 NavMeshObstacle:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
