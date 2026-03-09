@@ -20,6 +20,7 @@ public class UnitGachaManager : MonoBehaviour
         if (!_canReroll) return;
 
         _lastGeneratedStat = generator.GenerateRandomUnit();
+        InventoryManager.Instance.AddUnit(_lastGeneratedStat); // 인벤토리에 저장
         _canReroll = false; // 재분배 기회 소진
         ShowResultUI(_lastGeneratedStat);
     }

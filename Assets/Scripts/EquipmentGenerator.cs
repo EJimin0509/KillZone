@@ -7,9 +7,9 @@ public class EquipmentGenerator : MonoBehaviour
     private struct EquipmentSpec
     {
         public string name;
-        public int bonusCount;
-        public int maxLevel;
-        public float baseValue; // 사거리 또는 방어력
+        public int bonusCount; // 무작위 스탯 개수
+        public int maxLevel; // 0 ~ n 증가 수치
+        public float baseValue; // 무기: 사거리 / 방어구: 방어력
     }
 
     private Dictionary<EquipmentType, List<EquipmentSpec>> _itemPool = new Dictionary<EquipmentType, List<EquipmentSpec>>()

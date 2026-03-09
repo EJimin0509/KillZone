@@ -17,6 +17,8 @@ public class EquipmentGachaManager : MonoBehaviour
         // 2. 장비 생성 (부위 랜덤)
         EquipmentData result = generator.GenerateRandomEquipment();
 
+        InventoryManager.Instance.AddEquipment(result); // 인벤토리에 저장
+
         // 3. 결과 출력
         ShowResult(result, grade);
     }
