@@ -9,7 +9,7 @@ public class UnitGenerator : MonoBehaviour
 
     public UnitData GenerateRandomUnit()
     {
-        UnitData newStat = new UnitData();
+        UnitData newStat = ScriptableObject.CreateInstance<UnitData>();
         newStat.SetDefault(); // 1. 기본 포인트 부여
 
         int remainingPoints = TOTAL_EXTRA_POINTS;

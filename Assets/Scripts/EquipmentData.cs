@@ -4,7 +4,7 @@ using UnityEngine;
 public enum EquipmentType { Melee, Bow, Helm, Chest } // 근거리, 원거리, 헬름, 갑옷
 
 // 무기가 강화해줄 수 있는 스탯 종류
-public enum StatBonusType { Hp, AttackPower, RangeAccuracy, RepairSpeed, HealSpeed, MentalValue }
+public enum StatBonusType { Hp, AttackPower, RangeAccuracy, RepairSpeed, HealSpeed, MentalValue, MentalHealAmount }
 
 [System.Serializable]
 public struct StatBonus
