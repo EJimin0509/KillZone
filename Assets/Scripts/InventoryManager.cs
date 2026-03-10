@@ -5,16 +5,19 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
 
-    [Header("Inventory Lists")]
+    [Header("보유 목록")]
     public List<UnitData> myUnits = new List<UnitData>();
     public List<EquipmentData> myEquipments = new List<EquipmentData>();
+
+    [Header("스테이지 편성 (최대 5명)")]
+    public UnitData[] formationSlots = new UnitData[5];
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // 씬 전환 시에도 유지
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -22,17 +25,32 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // 뽑은 용병 추가
+    // 1. 뽑기 결과 저장 (UI에서 '확정' 버튼 누를 때 호출)
     public void AddUnit(UnitData unit)
     {
+        if (unit == null) return;
         myUnits.Add(unit);
-        Debug.Log($"보관함에 용병 추가: {unit.unitName}");
+        Debug.Log($"[Inventory] {unit.unitName} 저장 완료. 현재 보유 수: {myUnits.Count}");
     }
 
-    // 뽑은 장비 추가
-    public void AddEquipment(EquipmentData equipment)
+    public void AddEquipment(EquipmentData equip)
     {
-        myEquipments.Add(equipment);
-        Debug.Log($"보관함에 장비 추가: {equipment.equipName}");
+        if (equip == null) return;
+        myEquipments.Add(equip);
+        Debug.Log($"[Inventory] {equip.equipName} 저장 완료.");
+    }
+
+    // 2. 스테이지 편성 로직
+    public void SetFormation(int slotIndex, UnitData unit)
+    {
+        if (slotIndex < 0 || slotIndex >= 5) return;
+
+        // 중복 편성 방지: 다른 슬롯에 이미 있으면 비움
+        for (int i = 0; i < formationSlots.Length; i++)
+        {
+            if (formationSlots[i] == unit) formationSlots[i] = null;
+        }
+
+        formationSlots[slotIndex] = unit;
     }
 }
