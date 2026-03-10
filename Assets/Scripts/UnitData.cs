@@ -4,6 +4,11 @@ using UnityEngine;
 [System.Serializable]
 public class UnitData : ScriptableObject
 {
+    [Header("Equipped Items")]
+    public EquipmentData equippedHelm;
+    public EquipmentData equippedChest;
+    public EquipmentData equippedWeapon;
+
     public string unitName;
 
     public int hp;      // Ã¼·Â

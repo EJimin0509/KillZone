@@ -14,6 +14,12 @@ public class UnitInventorySceneManager : MonoBehaviour
     public TextMeshProUGUI[] statTexts; // HP, 격투, 사격, 수리, 의술, 의지, 신앙 순서
     public Image unitIllust;            // 용병 전신샷/초상화 이미지
 
+    [Header("Equipment Buttons")]
+    public Button helmButton;
+    public Button chestButton;
+    public Button weaponButton;
+    public EquipmentSelectPopup selectPopup;
+
     private UnitData _selectedUnit;
 
     private void Start()
@@ -24,6 +30,34 @@ public class UnitInventorySceneManager : MonoBehaviour
         {
             SelectUnit(InventoryManager.Instance.myUnits[0]);
         }
+
+        // 버튼 리스너 연결
+        helmButton.onClick.AddListener(() => selectPopup.Open(EquipmentType.Helm, (e) => EquipItem(e, 0)));
+        chestButton.onClick.AddListener(() => selectPopup.Open(EquipmentType.Chest, (e) => EquipItem(e, 1)));
+        weaponButton.onClick.AddListener(() => selectPopup.Open(EquipmentType.Melee, (e) => EquipItem(e, 2)));
+    }
+
+    // 용병 리스트에서 용병을 선택했을 때 호출
+    public void OnSelectUnit(UnitData unit)
+    {
+        _selectedUnit = unit;
+        RefreshEquipVisuals();
+    }
+
+    private void EquipItem(EquipmentData item, int slot)
+    {
+        if (_selectedUnit == null) return;
+
+        if (slot == 0) _selectedUnit.equippedHelm = item;
+        else if (slot == 1) _selectedUnit.equippedChest = item;
+        else _selectedUnit.equippedWeapon = item;
+
+        RefreshEquipVisuals();
+    }
+
+    private void RefreshEquipVisuals()
+    {
+        // 각 버튼의 Image나 Text를 _selectedUnit의 장착 데이터에 맞게 갱신하는 로직 추가
     }
 
     // 아군 리스트 생성 및 갱신
