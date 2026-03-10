@@ -24,6 +24,24 @@ public class EquipmentGachaUI : MonoBehaviour
     // 장비 정보 표시
     public void DisplayEquipment(EquipmentData item, string grade)
     {
+        // 디버깅용 체크
+        if (gradeText == null) { Debug.LogError("gradeText가 할당되지 않았습니다!"); return; }
+        if (nameText == null) { Debug.LogError("nameText가 할당되지 않았습니다!"); return; }
+        if (baseStatText == null) { Debug.LogError("baseStatText가 할당되지 않았습니다!"); return; }
+        if (bonusStatText == null) { Debug.LogError("bonusStatText가 할당되지 않았습니다!"); return; }
+
+        if (gradeText == null || nameText == null || baseStatText == null || bonusStatText == null)
+        {
+            Debug.LogError("EquipmentGachaUI: 텍스트 컴포넌트 중 일부가 인스펙터에서 할당되지 않았습니다!");
+            return;
+        }
+
+        if (item == null)
+        {
+            Debug.LogError("EquipmentGachaUI: 전달된 EquipmentData가 Null입니다!");
+            return;
+        }
+
         gradeText.text = $"등급: {grade}";
         nameText.text = item.equipName;
 

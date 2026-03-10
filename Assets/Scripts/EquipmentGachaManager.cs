@@ -23,13 +23,14 @@ public class EquipmentGachaManager : MonoBehaviour
         else grade = "하급";
 
         // 2. 장비 생성 (부위 랜덤)
-        EquipmentData result = generator.GenerateRandomEquipment();
-
-        InventoryManager.Instance.AddEquipment(result); // 인벤토리에 저장
+        _lastGeneratedItem = generator.GenerateRandomEquipment();
 
         // 3. UI 출력
-        gachaUI.DisplayEquipment(_lastGeneratedItem, grade);
-        gachaUI.SetButtonState(false, true);
+        if (_lastGeneratedItem != null)
+        {
+            gachaUI.DisplayEquipment(_lastGeneratedItem, grade);
+            gachaUI.SetButtonState(false, true);
+        }
     }
 
     public void OnClickConfirm()

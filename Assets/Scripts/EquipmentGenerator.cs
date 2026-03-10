@@ -27,19 +27,31 @@ public class EquipmentGenerator : MonoBehaviour
             new EquipmentSpec { name = "플레이트 아머", bonusCount = 2, maxLevel = 2, baseValue = 10f }
         }},
         { EquipmentType.Melee, new List<EquipmentSpec> {
-            new EquipmentSpec { name = "브로드 소드", bonusCount = 1, maxLevel = 1, baseValue = 1.2f },
-            new EquipmentSpec { name = "모닝스타", bonusCount = 2, maxLevel = 2, baseValue = 1.0f }
+            new EquipmentSpec { name = "단검", bonusCount = 1, maxLevel = 1, baseValue = 1.2f },
+            new EquipmentSpec { name = "롱소드", bonusCount = 1, maxLevel = 2, baseValue = 1.5f },
+            new EquipmentSpec { name = "워해머", bonusCount = 2, maxLevel = 1, baseValue = 1.5f },
+            new EquipmentSpec { name = "그레이트소드", bonusCount = 2, maxLevel = 2, baseValue = 2f }
         }},
         { EquipmentType.Bow, new List<EquipmentSpec> {
-            new EquipmentSpec { name = "컴포지트 보우", bonusCount = 1, maxLevel = 2, baseValue = 5.0f },
-            new EquipmentSpec { name = "헤비 크로스보우", bonusCount = 2, maxLevel = 2, baseValue = 7.0f }
+            new EquipmentSpec { name = "숏보우", bonusCount = 1, maxLevel = 1, baseValue = 5f },
+            new EquipmentSpec { name = "롱보우", bonusCount = 1, maxLevel = 2, baseValue = 8f },
+            new EquipmentSpec { name = "크로스보우", bonusCount = 2, maxLevel = 1, baseValue = 10f },
+            new EquipmentSpec { name = "헤비 크로스보우", bonusCount = 2, maxLevel = 2, baseValue = 12f }
         }}
     };
 
     public EquipmentData GenerateRandomEquipment()
     {
         // 1. 부위 랜덤 (Melee=0, Bow=1, Helm=2, Chest=3)
-        EquipmentType randomType = (EquipmentType)Random.Range(0, 4);
+        List<EquipmentType> availableTypes = new List<EquipmentType>(_itemPool.Keys);
+        EquipmentType randomType = availableTypes[Random.Range(0, availableTypes.Count)];
+
+        // 해당 부위 풀 확인
+        if (!_itemPool.ContainsKey(randomType) || _itemPool[randomType].Count == 0)
+        {
+            Debug.LogError($"{randomType} 타입의 장비 풀이 비어있습니다! Dictionary 설정을 확인하세요.");
+            return null;
+        }
 
         List<EquipmentSpec> specs = _itemPool[randomType];
         EquipmentSpec selectedSpec = specs[Random.Range(0, specs.Count)];
@@ -64,7 +76,6 @@ public class EquipmentGenerator : MonoBehaviour
 
     private void ApplyRandomBonuses(EquipmentData item, int count, int maxLevel)
     {
-        // 새로 추가된 MentalHealAmount(신앙) 포함 총 7종
         List<StatBonusType> types = new List<StatBonusType> {
             StatBonusType.Hp, StatBonusType.AttackPower, StatBonusType.RangeAccuracy,
             StatBonusType.RepairSpeed, StatBonusType.HealSpeed, StatBonusType.MentalValue,
