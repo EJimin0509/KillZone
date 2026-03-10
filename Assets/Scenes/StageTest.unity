@@ -526,6 +526,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 293758790}
   m_CullTransparentMesh: 1
+--- !u!1 &294348699
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 294348700}
+  m_Layer: 0
+  m_Name: CommandManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &294348700
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 294348699}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.69818, y: -10.34973, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &297882250
 GameObject:
   m_ObjectHideFlags: 0
@@ -1945,9 +1976,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1afede8d9530ce4c9e9cef95e5bf7fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildManager
-  wallPrefab: {fileID: 8480340382883121130, guid: e200e353908d1234dac85a6882508eb0, type: 3}
+  buildOptions:
+  - structureName: Wall
+    prefab: {fileID: 8480340382883121130, guid: e200e353908d1234dac85a6882508eb0, type: 3}
+    cost: 1
+  - structureName: Trap_Slow
+    prefab: {fileID: 8026703231307701662, guid: 30c388e8e1481cd4da90724584bb18c1, type: 3}
+    cost: 2
+  - structureName: Trap_Thron
+    prefab: {fileID: 7629829484803085033, guid: 1daac3e5c65e078438007919341c41b1, type: 3}
+    cost: 3
+  - structureName: Trap_Poison
+    prefab: {fileID: 6178769744698016609, guid: 2ffef7bb0c4ace24e9024010b4af615b, type: 3}
+    cost: 4
+  - structureName: Catapult
+    prefab: {fileID: 1929257831426114824, guid: 808641b502dc8114692790a560cb9344, type: 3}
+    cost: 5
+  - structureName: Ballista
+    prefab: {fileID: 2464461749674657751, guid: 0539ab2ab55aaec4cbb07695e652ffc2, type: 3}
+    cost: 6
+  - structureName: Trap_Bomb
+    prefab: {fileID: 2665717709188979131, guid: 2344a9fc92e546b4bbcde88c78048ec7, type: 3}
+    cost: 7
+  - structureName: Trap_Lock
+    prefab: {fileID: 2766990686764607882, guid: 0cb8755356f3c43468012b1005206aa8, type: 3}
+    cost: 8
+  - structureName: Tower
+    prefab: {fileID: 5504091531464387877, guid: 7d50e7394454cdb43a8bb971d69ea192, type: 3}
+    cost: 9
   maxCost: 100
-  wallCost: 10
   buildAreaLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -8763,3 +8820,4 @@ SceneRoots:
   - {fileID: 1089857793}
   - {fileID: 1588235068}
   - {fileID: 558806726}
+  - {fileID: 294348700}
