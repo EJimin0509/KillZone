@@ -100,7 +100,8 @@ public class UnitStat : MonoBehaviour
         // 무리 합산되어도 10단계를 넘기지 않음
         totalLevel = Mathf.Clamp(totalLevel, 1, 10);
 
-        float multiplier = 1f + (totalLevel - 1) * data.upgradeMultiplier;
+        //float multiplier = 1f + (totalLevel - 1) * data.upgradeMultiplier;
+        float multiplier = 1f; // 임시
         return baseValue * multiplier;
     }
 
