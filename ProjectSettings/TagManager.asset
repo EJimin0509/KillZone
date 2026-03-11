@@ -8,14 +8,14 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Unit
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Enemy
+  - Obstacle
+  - Build
+  - Ground
+  - Biom
   - 
   - 
   - 
@@ -44,8 +44,11 @@ TagManager:
   - name: Backgroud
     uniqueID: 3999195921
     locked: 0
-  - name: Ground
+  - name: Object
     uniqueID: 2598088175
+    locked: 0
+  - name: Foreground
+    uniqueID: 1185242249
     locked: 0
   m_RenderingLayers:
   - Default

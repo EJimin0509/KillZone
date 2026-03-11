@@ -40,8 +40,8 @@ public class PlayerObj : MonoBehaviour
     {
         if(isAction) return;
 
-        transform.position = new Vector3(transform.position.x,transform.position.y,transform.localPosition.y * 0.01f);
-        switch(_currentState)
+        
+        switch (_currentState)
         {
             case PlayerState.IDLE:
             
