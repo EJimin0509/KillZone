@@ -237,4 +237,15 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+
+    public void SetDestination(Vector3 target)
+    {
+        // 이동 명령 시 Obstacle을 즉시 끄고 Agent를 켭니다.
+        var obstacle = GetComponent<NavMeshObstacle>();
+        if (obstacle != null) obstacle.enabled = false;
+
+        _agent.enabled = true;
+        _agent.isStopped = false;
+        _agent.SetDestination(target);
+    }
 }

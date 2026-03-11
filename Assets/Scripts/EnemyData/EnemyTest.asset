@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1883d32dd6e55264cb54f966fe53c2b7, type: 3}
   m_Name: EnemyTest
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
-  enemyName: 
-  maxHp: 50
-  attackPower: 5
+  enemyName: test
+  maxHp: 10
+  attackPower: 1
   defense: 1
   moveSpeed: 2
   attackType: 0

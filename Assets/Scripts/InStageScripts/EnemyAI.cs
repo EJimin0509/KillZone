@@ -9,6 +9,8 @@ public class EnemyAI : MonoBehaviour
 {
     [SerializeField] private EnemyData data; // 적 기본 데이터(ScriptableObject)
     private SpriteRenderer _spriteRenderer;
+    private NavMeshAgent _agent; // NavMeshAgent
+    private NavMeshObstacle _obstacle; // 전투 시 장애물 판정을 위한 컴포넌트
 
     [Header("Visual Knockback")]
     [SerializeField] private Transform visualChild; // 자식 오브젝트인 Visual을 드래그 앤 드롭
@@ -20,8 +22,6 @@ public class EnemyAI : MonoBehaviour
     private bool _isKnockbacking = false; // 현재 넉백 중인지 여부
 
     private GameObject _currentTarget; // 현재 공격 대상 (아군 유닛 또는 베이스)
-    private Vector3[] _pathCorners; // NavMesh로 계산된 경로의 점들
-    private int _pathIndex; // 현재 이동 중인 경로의 인덱스
 
     // 경로 갱신 최적화: 모든 적이 서로 다른 타이밍에 갱신하도록 설정 (부하 분산)
     private float _pathUpdateInterval = 1.0f;
@@ -32,6 +32,21 @@ public class EnemyAI : MonoBehaviour
     private void Awake()
     {
         _spriteRenderer = GetComponentInChildren<SpriteRenderer>(); // 자식 스프라이트 렌더러 참조
+        _agent = GetComponent<NavMeshAgent>(); // 컴포넌트 할당
+        _obstacle = GetComponent<NavMeshObstacle>(); // 컴포넌트 할당
+
+        if (_obstacle != null)
+        {
+            _obstacle.carving = true; // 실시간 경로 재계산 활성화
+            _obstacle.enabled = false; // 기본적으론 꺼둠
+        }
+
+        if (_agent != null)
+        {
+            _agent.updateRotation = false; // 2D이므로 회전 끄기
+            _agent.updateUpAxis = false;
+            _agent.enabled = true;
+        }
 
         // 데이터가 존재할 경우 초기 체력 설정
         if (data != null) CurrentHp = data.maxHp;
@@ -50,16 +65,15 @@ public class EnemyAI : MonoBehaviour
         if (data != null) CurrentHp = data.maxHp;
         _isKnockbacking = false;
         _currentTarget = null;
-        _pathIndex = 0;
-        _pathCorners = null;
+        //_pathIndex = 0;
+        //_pathCorners = null;
         _nextUpdateTime = Time.time;
 
         // NavMeshAgent 재활성화 및 위치 보정
-        NavMeshAgent agent = GetComponent<NavMeshAgent>();
-        if (agent != null)
+        if (_agent != null)
         {
-            agent.enabled = false; // 위치를 옮기기 위해 잠시 끔
-            StartCoroutine(ResetAgentRoutine(agent));
+            _agent.enabled = false; // 위치를 옮기기 위해 잠시 끔
+            StartCoroutine(ResetAgentRoutine(_agent));
         }
     }
 
@@ -90,62 +104,75 @@ public class EnemyAI : MonoBehaviour
             if (!IsTargetAlive(_currentTarget))
             {
                 _currentTarget = null;
+                // 타겟이 죽으면 장애물 해제하고 다시 이동 준비
+                if (_obstacle != null) _obstacle.enabled = false;
                 return;
             }
 
             // 타겟과의 거리 계산
             float dist = Vector2.Distance(transform.position, _currentTarget.transform.position);
 
-            if (dist <= data.attackRange)
+            // 공격 사거리 내 진입 여부 판단(오차 보정 0.1f
+            if (dist <= data.attackRange + 0.1f)
             {
-                // 공격 사거리 내에 있다면 멈춰서 공격 방향을 바라보고 공격
-                HandleSpriteFlip(_currentTarget.transform.position);
-                TryAttack();
+                StopAndAttack(); // 멈춰서 공격 상태 돌입
             }
             else
             {
                 // 사거리 밖이라면 타겟을 향해 이동
-                HandleAStarMovement();
+                MoveToTarget();
             }
+        }
+        else
+        {
+            // 타겟이 없으면 정지
+            if (_agent.isActiveAndEnabled) _agent.isStopped = true;
         }
     }
 
-    private void HandleAStarMovement()
+    // 공격 상태일 때 Agent를 끄고 Obstacle을 켜서 장애물로 변신 (요청 사항 2, 3번)
+    private void StopAndAttack()
     {
-        // 타겟 위치가 변하므로 주기적으로 경로 갱신
-        if (Time.time >= _nextUpdateTime)
+        if (_agent.enabled)
         {
-            UpdatePath();
-            _nextUpdateTime = Time.time + _pathUpdateInterval;
+            _agent.enabled = false; // 이동 중지
+            if (_obstacle != null) _obstacle.enabled = true; // 장애물 판정 활성화
         }
 
-        if (_pathCorners != null && _pathIndex < _pathCorners.Length)
+        HandleSpriteFlip(_currentTarget.transform.position);
+        TryAttack();
+    }
+
+    // 이동 상태일 때 Obstacle을 끄고 Agent를 켜서 길찾기 수행 (요청 사항 1, 3번)
+    private void MoveToTarget()
+    {
+        if (_obstacle != null && _obstacle.enabled)
         {
-            Vector3 targetPos = _pathCorners[_pathIndex];
+            _obstacle.enabled = false; // 장애물 해제
+            StartCoroutine(EnableAgentNextFrame()); // 에이전트 재활성화
+            return;
+        }
 
-            // 직접 좌표 이동으로 장애물 끼임 물리 연산 우회
-            transform.position = Vector3.MoveTowards(transform.position, targetPos, data.moveSpeed * Time.deltaTime);
+        if (_agent.isActiveAndEnabled)
+        {
+            _agent.isStopped = false;
+            _agent.speed = data.moveSpeed;
 
-            HandleSpriteFlip(targetPos);
-
-            if (Vector3.Distance(transform.position, targetPos) < 0.1f)
+            // 주기적인 경로 갱신으로 연산 부하 분산
+            if (Time.time >= _nextUpdateTime)
             {
-                _pathIndex++;
+                _agent.SetDestination(_currentTarget.transform.position);
+                _nextUpdateTime = Time.time + _pathUpdateInterval;
             }
+
+            HandleSpriteFlip(_agent.steeringTarget); // 다음 길목을 바라봄
         }
     }
 
-    private void UpdatePath()
+    private IEnumerator EnableAgentNextFrame()
     {
-        if (_currentTarget == null) return;
-
-        NavMeshPath path = new NavMeshPath();
-        // NavMesh 데이터로부터 A* 경로만 계산해서 가져옴
-        if (NavMesh.CalculatePath(transform.position, _currentTarget.transform.position, NavMesh.AllAreas, path))
-        {
-            _pathCorners = path.corners;
-            _pathIndex = 1;
-        }
+        yield return null;
+        _agent.enabled = true;
     }
 
     /// <summary>
@@ -222,6 +249,8 @@ public class EnemyAI : MonoBehaviour
     {
         // 죽는 로직
 
+        if (_obstacle != null) _obstacle.enabled = false; // 죽을 때 장애물 제거
+
         // 오브젝트 풀 반납
         if (SimpleObjectPool.Instance != null)
         {
@@ -230,40 +259,6 @@ public class EnemyAI : MonoBehaviour
         else
         {
             Destroy(gameObject);
-        }
-    }
-
-    private void HandleTargeting()
-    {
-        bool isTargetingUnit = _currentTarget != null && _currentTarget.CompareTag("Unit");
-
-        if (!isTargetingUnit)
-        {
-            // _unitLayer를 우선적으로 타겟팅
-            // _unitLayer에는 아군 유닛 뿐만 아니라 체력이 존재하는 구조물도 포함
-            Collider2D hit = Physics2D.OverlapCircle(transform.position, data.attackRange * 2f, _unitLayer);
-            
-            if (hit != null)
-            {
-                // 유닛을 발견하면 즉시 타겟 교체 및 경로 갱신
-                _currentTarget = hit.gameObject;
-                UpdatePath();
-                return; // 유닛을 잡았으므로 아래 Base 설정 로직 건너뜀
-            }
-        }
-
-        // 유닛을 타겟팅 중이 아니거나, 기존 타겟이 죽었다면 Base로 설정
-        if (!IsTargetAlive(_currentTarget))
-        {
-            if (DefenseBase.Current != null)
-            {
-                _currentTarget = DefenseBase.Current.gameObject;
-                UpdatePath();
-            }
-            else
-            {
-                _currentTarget = null;
-            }
         }
     }
 
@@ -308,4 +303,40 @@ public class EnemyAI : MonoBehaviour
             _lastAttackTime = Time.time;
         }
     }
+
+    private void HandleTargeting()
+    {
+        bool isTargetingUnit = _currentTarget != null && _currentTarget.CompareTag("Unit");
+
+        // _unitLayer를 우선적으로 타겟팅
+        // _unitLayer에는 아군 유닛 뿐만 아니라 체력이 존재하는 구조물도 포함
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, data.attackRange * 2f, _unitLayer);
+
+        if (hit != null)
+        {
+            // [디버그] 유닛 감지 성공 시 로그
+            //if (_currentTarget != hit.gameObject)
+            //{
+            //    Debug.Log($"<color=red>[적 AI]</color> 아군 유닛 발견! 타겟 교체: {hit.gameObject.name}");
+            //}
+            // 유닛을 발견하면 즉시 타겟 교체 및 경로 갱신
+            _currentTarget = hit.gameObject;
+            //UpdatePath();
+            return; // 유닛을 잡았으므로 아래 Base 설정 로직 건너뜀
+        }
+
+        // 유닛을 타겟팅 중이 아니거나, 기존 타겟이 죽었다면 Base로 설정
+        if (!IsTargetAlive(_currentTarget))
+        {
+            if (DefenseBase.Current != null)
+            {
+                _currentTarget = DefenseBase.Current.gameObject;
+            }
+            else
+            {
+                _currentTarget = null;
+            }
+        }
+    }
 }
+

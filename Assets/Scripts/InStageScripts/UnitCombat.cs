@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -13,7 +14,8 @@ public class UnitCombat : MonoBehaviour
     private NavMeshAgent _agent; // 유닛이 NaveMesh 사용 중이므로 NaveMesh 참조
     private float _lastAttackTime; // 공격 속도
     private float _scanTimer; // 스캔 탐색용 타이머
-    
+    private NavMeshObstacle _obstacle; // 장애물 판정용
+
     public bool IsForceMoving = false; // 현재 유닛이 강제 이동 명령을 받았는지 확인
     public GameObject CurrentTarget; // 현재 공격중인 타겟을 담을 변수
 
@@ -25,6 +27,20 @@ public class UnitCombat : MonoBehaviour
     {
         _myStat = GetComponent<UnitStat>(); // UnitStat 컴포넌트 참조
         _agent = GetComponent<NavMeshAgent>(); // NavMeshAgent 컴포넌트 참조
+        _obstacle = GetComponent<NavMeshObstacle>();
+
+        if (_obstacle != null)
+        {
+            _obstacle.carving = true; // 실시간 경로 재계산 활성화
+            _obstacle.enabled = false; // 기본은 비활성화
+        }
+
+        if (_agent != null)
+        {
+            _agent.updateRotation = false; // 2D이므로 회전 끄기
+            _agent.updateUpAxis = false;
+            _agent.enabled = true;
+        }
     }
 
     private void Update()
@@ -74,32 +90,60 @@ public class UnitCombat : MonoBehaviour
         if (targetEnemy == null || targetEnemy.CurrentHp <= 0) // 타겟이 없거나 사망
         {
             ResetCombat(); // 전투 종료 후 상태 초기화
+            // 타겟이 죽으면 멈추지 않고 다시 탐색 대기 상태로 전환
+            if (canControlAgent && !IsForceMoving) _agent.isStopped = false;
             return;        // 리턴
         }
 
         // 타겟과 유닛 사이의 거리 Vector2
         float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
 
-        // 3. 사거리 및 추적 로직
-        if (dist <= _myStat.AttackRange)
+        // 3. 사거리 및 추적 로직 (여유값 0.2f)
+        if (dist <= _myStat.AttackRange + 0.2f)
         {
             // 사거리 안이면 정지
-            if (!IsForceMoving && canControlAgent)
+            if (!IsForceMoving)
             {
-                _agent.isStopped = true; // 정지
-            }
+                if (_agent.enabled)
+                {
+                    _agent.enabled = false; // 에이전트 끄기
+                    if (_obstacle != null) _obstacle.enabled = true; // 장애물 켜기
+                }
 
-            TryAttack(targetEnemy);      // 공격
+                // 공격 시 적을 바라보게 함
+                HandleFlip(CurrentTarget.transform.position);
+                TryAttack(targetEnemy); // 공격
+            }
         }
         else
         {
             // 사거리 밖이고 강제 이동 중이 아니라면 추격
-            if (!IsForceMoving && canControlAgent)
+            if (!IsForceMoving)
             {
-                _agent.isStopped = false;
-                _agent.SetDestination(CurrentTarget.transform.position); // 새로운 경로 설정
+                if (_obstacle != null && _obstacle.enabled)
+                {
+                    _obstacle.enabled = false;
+                    StartCoroutine(EnableAgentNextFrame()); // 한 프레임 뒤 Agent 활성화
+                    return;
+                }
+
+                if (_agent.isActiveAndEnabled)
+                {
+                    _agent.isStopped = false;
+                    _agent.SetDestination(CurrentTarget.transform.position); // 새로운 경로 설정
+                }
             }
         }
+    }
+
+   /// <summary>
+   /// 에이전트 재활성화를 위한 코루틴
+   /// </summary>
+   /// <returns></returns>
+    private IEnumerator EnableAgentNextFrame()
+    {
+        yield return null;
+        _agent.enabled = true;
     }
 
     /// <summary>
@@ -178,5 +222,16 @@ public class UnitCombat : MonoBehaviour
         {
             _agent.isStopped = false;
         }
+    }
+
+    /// <summary>
+    /// 공격 중인 방향으로 스프라이트 반전
+    /// </summary>
+    /// <param name="targetPos"></param>
+    private void HandleFlip(Vector3 targetPos)
+    {
+        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr == null) return;
+        sr.flipX = targetPos.x < transform.position.x;
     }
 }
