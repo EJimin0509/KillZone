@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 1808549754250978295}
   - component: {fileID: 8511180486927626561}
   - component: {fileID: 6149561805922648295}
-  m_Layer: 8
+  - component: {fileID: 7331133193279485234}
+  - component: {fileID: 6415789144916679745}
+  m_Layer: 11
   m_Name: Catapult
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -138,3 +140,32 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &7331133193279485234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929257831426114824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c852b83773f07c34aa0a8610d76cf88c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatusEffectHandler
+--- !u!114 &6415789144916679745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929257831426114824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 080b06cc2c2495343890489152638aea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MannedStructure
+  data: {fileID: 11400000, guid: 8abfc9a7642298f44a17f82a883de5ed, type: 2}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  breakdownEffect: {fileID: 0}

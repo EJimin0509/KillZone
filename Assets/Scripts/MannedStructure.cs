@@ -17,6 +17,7 @@ public class MannedStructure : MonoBehaviour, IDamageable
     private float _recentDamageTimer = 0f;
 
     public float CurrentHp => _currentHp;
+    public bool HasGarrisonedUnit => _garrisonedUnit != null;
 
     private void Awake()
     {
@@ -59,7 +60,6 @@ public class MannedStructure : MonoBehaviour, IDamageable
             {
                 PerformAttack(enemy);
                 _lastAttackTime = Time.time;
-
                 _continuousAttackTimer += Time.deltaTime;
                 if (_continuousAttackTimer >= 30f)
                 {
@@ -85,14 +85,11 @@ public class MannedStructure : MonoBehaviour, IDamageable
         }
     }
 
-    // --- 배치(탑승) 로직 ---
     public void GarrisonUnit(UnitStat unit)
     {
         if (_garrisonedUnit != null) return;
-
         _garrisonedUnit = unit;
 
-        // 망루 스탯 보너스 부여
         if (data.type == StructureType.Tower)
         {
             if (!unit.baseLevels.ContainsKey(StatBonusType.RangeAccuracy))
@@ -101,69 +98,84 @@ public class MannedStructure : MonoBehaviour, IDamageable
             unit.RefreshStats();
         }
 
-        // 컴포넌트 비활성화 (이동/물리 끄기)
-        unit.GetComponent<Collider2D>().enabled = false;
-        unit.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
-        unit.GetComponent<PlayerMovement>().enabled = false;
+        // 컴포넌트 강제 종료하여 오작동 방지
+        var combat = unit.GetComponent<UnitCombat>();
+        if (combat != null) combat.enabled = false;
 
-        // 크기 축소 및 중앙 부착 (시각적 연출)
+        var agent = unit.GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null) agent.enabled = false;
+
+        var movement = unit.GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = false;
+
+        var collider = unit.GetComponent<Collider2D>();
+        if (collider != null) collider.enabled = false;
+
         unit.transform.SetParent(this.transform);
-        unit.transform.localPosition = Vector3.zero;
+        unit.transform.localPosition = new Vector3(0, 0, -1f);
         unit.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
 
-        Debug.Log($"{unit.data.unitName} 유닛이 {data.structureName}에 배치되었습니다!");
+        SpriteRenderer[] srs = unit.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var sr in srs) sr.sortingOrder = 100;
+
+        Debug.Log($"<color=green>[배치 성공]</color> {unit.data.unitName} 유닛 배치 완료!");
     }
 
-    // --- 해제(내리기) 로직 ---
     public void UnGarrisonUnit(Vector2 targetPos)
     {
         if (_garrisonedUnit == null) return;
-
         UnitStat unit = _garrisonedUnit;
 
-        // 망루 보너스 원상복구
         if (data.type == StructureType.Tower)
         {
             unit.baseLevels[StatBonusType.RangeAccuracy] -= 2;
             unit.RefreshStats();
         }
 
-        // 부모 해제 및 크기 원상복구
         unit.transform.SetParent(null);
         unit.transform.localScale = Vector3.one;
+        unit.transform.position = new Vector3(transform.position.x, transform.position.y, 0f);
+
+        SpriteRenderer[] srs = unit.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var sr in srs) sr.sortingOrder = 0;
 
         // 컴포넌트 재활성화
-        unit.GetComponent<Collider2D>().enabled = true;
-        var agent = unit.GetComponent<UnityEngine.AI.NavMeshAgent>();
-        agent.enabled = true;
+        var combat = unit.GetComponent<UnitCombat>();
+        if (combat != null) combat.enabled = true;
 
-        // NavMesh 위로 스냅 (구조물 밖으로 정상적으로 이동하기 위함)
-        if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit hit, 2.0f, UnityEngine.AI.NavMesh.AllAreas))
+        var collider = unit.GetComponent<Collider2D>();
+        if (collider != null) collider.enabled = true;
+
+        var agent = unit.GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null)
         {
-            agent.Warp(hit.position);
+            agent.enabled = true;
+            if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit hit, 2.0f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                agent.Warp(hit.position);
+            }
         }
 
         var movement = unit.GetComponent<PlayerMovement>();
-        movement.enabled = true;
-
-        // 지정된 바닥으로 이동 명령
-        movement.CommandMove(targetPos);
+        if (movement != null)
+        {
+            movement.enabled = true;
+            movement.CommandMove(targetPos);
+        }
 
         _garrisonedUnit = null;
-        Debug.Log("유닛 배치 해제! 지정된 위치로 이동합니다.");
+        Debug.Log("<color=yellow>[배치 해제]</color> 지정된 위치로 이동합니다.");
     }
 
     public void TakeDamage(float amount, Vector2 attackerPos = default)
     {
         _currentHp -= amount;
         _recentDamageTaken += amount;
-
         if (_recentDamageTaken >= data.hpOrDurability * 0.4f)
         {
             TriggerBreakdown();
             _recentDamageTaken = 0f;
         }
-
         if (_currentHp <= 0) Die();
     }
 
@@ -174,7 +186,6 @@ public class MannedStructure : MonoBehaviour, IDamageable
 
     private void Die()
     {
-        // 파괴 시 강제로 밖으로 떨어짐
         if (_garrisonedUnit != null) UnGarrisonUnit(transform.position);
         gameObject.SetActive(false);
     }

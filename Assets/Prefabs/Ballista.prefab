@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 5583322667968526389}
   - component: {fileID: 4331568081622200723}
   - component: {fileID: 7744207994093457065}
-  m_Layer: 8
+  - component: {fileID: -3698755995851871095}
+  - component: {fileID: 2795320884836243305}
+  m_Layer: 11
   m_Name: Ballista
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -138,3 +140,32 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-3698755995851871095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2464461749674657751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c852b83773f07c34aa0a8610d76cf88c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatusEffectHandler
+--- !u!114 &2795320884836243305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2464461749674657751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 080b06cc2c2495343890489152638aea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MannedStructure
+  data: {fileID: 11400000, guid: c2ae0abd8f0e66e42ab9471345c1afb4, type: 2}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  breakdownEffect: {fileID: 0}

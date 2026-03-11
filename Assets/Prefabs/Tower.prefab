@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 8856652474183168237}
   - component: {fileID: 8162952330272532588}
   - component: {fileID: 2249994693095464850}
-  m_Layer: 8
+  - component: {fileID: 6116123905628906981}
+  - component: {fileID: 2384248886428228397}
+  m_Layer: 11
   m_Name: Tower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -138,3 +140,32 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &6116123905628906981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5504091531464387877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c852b83773f07c34aa0a8610d76cf88c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatusEffectHandler
+--- !u!114 &2384248886428228397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5504091531464387877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 080b06cc2c2495343890489152638aea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MannedStructure
+  data: {fileID: 11400000, guid: a7c7b35017555cb4eb7d1d17a00ad48e, type: 2}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  breakdownEffect: {fileID: 0}

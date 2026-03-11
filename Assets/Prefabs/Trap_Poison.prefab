@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3465947266756139581}
   - component: {fileID: 5989627408260127853}
   - component: {fileID: 5370844836871750706}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Trap_Poison
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7006206788015668202}
   - component: {fileID: 8921317730706267327}
   - component: {fileID: 4826130935490505434}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Trap_Thorn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
