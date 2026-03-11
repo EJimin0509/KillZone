@@ -19,4 +19,12 @@ public class SceneLauncher : MonoBehaviour
     {
         SceneManager.LoadScene(3); // 장비 인벤토리 씬으로 이동
     }
+
+    public void GoToStage()
+    {
+        int count = 0;
+        foreach (var slot in InventoryManager.Instance.formationSlots) if (slot != null) count++;
+        Debug.Log("넘어가기 전 편성 인원: " + count);
+        SceneManager.LoadScene(4); // 스테이지 씬으로 이동
+    }
 }

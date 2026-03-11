@@ -294,8 +294,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d14bca75b171c3e4c96d83d01c2bf900, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitStat
-  data: {fileID: 11400000, guid: a35cc449c349d40428853d585d2f01ad, type: 2}
-  currentWeapon: {fileID: 11400000, guid: 66baaa75d635f2c44ab1123e8ce33717, type: 2}
+  data: {fileID: 0}
+  currentWeapon: {fileID: 0}
   currentHelm: {fileID: 0}
   currentChest: {fileID: 0}
   visualChild: {fileID: 4266153300779786579}

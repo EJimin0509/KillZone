@@ -37,6 +37,13 @@ public class FormationManager : MonoBehaviour
         }
 
         formationSlots[slotIndex] = unit;
+
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.formationSlots[slotIndex] = unit;
+            Debug.Log($"[Sync] InventoryManager {slotIndex}번 슬롯 동기화 완료");
+        }
+
         Debug.Log($"{slotIndex + 1}번 슬롯에 {unit.unitName} 배치 완료");
         return true;
     }
