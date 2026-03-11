@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: WeaponSample
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
   equipName: test
-  type: 0
+  type: 1
   attackSpeedBonus: 0
-  attackRange: 1.5
+  attackRange: 20
   defense: 0
   additionalStatBonuses:
   - type: 0
     bonusLevel: 0
   - type: 1
-    bonusLevel: 0
+    bonusLevel: 1
   - type: 3
     bonusLevel: 0

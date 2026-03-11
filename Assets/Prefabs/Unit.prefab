@@ -281,6 +281,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   scanInterval: 0.2
+  arrowPrefab: {fileID: 2758677093137963018, guid: 23241b582f38d3448be8ac4b92ca2c19, type: 3}
 --- !u!114 &5247552109172946901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -300,7 +301,7 @@ MonoBehaviour:
   visualChild: {fileID: 4266153300779786579}
   knockbackDistance: 0.3
   knockbackDuration: 0.2
-  baseStatLevel: 1
+  baseStatLevel: 5
 --- !u!114 &6944689741692689972
 MonoBehaviour:
   m_ObjectHideFlags: 0

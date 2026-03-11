@@ -17,7 +17,7 @@ MonoBehaviour:
   attackPower: 1
   defense: 1
   moveSpeed: 2
-  attackType: 0
-  attackRange: 1.5
+  attackType: 1
+  attackRange: 20
   attackSpeed: 1
   accuracy: 80

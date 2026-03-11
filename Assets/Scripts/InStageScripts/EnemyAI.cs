@@ -8,6 +8,7 @@ using UnityEngine.AI; // NavMesh API 사용을 위해 추가
 public class EnemyAI : MonoBehaviour
 {
     [SerializeField] private EnemyData data; // 적 기본 데이터(ScriptableObject)
+    [SerializeField] private GameObject enemyArrowPrefab; // 적 전용 화살 프리팹
     private SpriteRenderer _spriteRenderer;
     private NavMeshAgent _agent; // NavMeshAgent
     private NavMeshObstacle _obstacle; // 전투 시 장애물 판정을 위한 컴포넌트
@@ -285,21 +286,25 @@ public class EnemyAI : MonoBehaviour
     {
         if (Time.time >= _lastAttackTime + (1f / data.attackSpeed))
         {
-            if (data.attackType == EnemyType.Range && Random.Range(0f, 100f) > data.accuracy)
+            if (data.attackType == EnemyType.Range) // 원거리 공격일 경우
             {
-                _lastAttackTime = Time.time;
-                return;
-            }
+                // 투사체 발사 시 타겟 태그 결정
+                string tagToHit = _currentTarget.CompareTag("Base") ? "Base" : "Unit";
+                // 적 원거리 공격 발사
+                GameObject arrowObj = SimpleObjectPool.Instance.SpawnFromPool(enemyArrowPrefab, transform.position, Quaternion.identity);
+                Projectile p = arrowObj.GetComponent<Projectile>();
 
-            if (_currentTarget.CompareTag("Unit"))
-            {
-                _currentTarget.GetComponent<UnitStat>().TakeDamage(data.attackPower, transform.position);
+                // 적의 명중률(accuracy) 반영
+                p.Launch(data.attackPower, transform.position, _currentTarget.transform.position, data.accuracy, tagToHit);
             }
-            else if (_currentTarget.CompareTag("Base"))
+            else
             {
-                _currentTarget.GetComponent<DefenseBase>().TakeDamage(data.attackPower);
+                // 근접 공격
+                if (_currentTarget.CompareTag("Unit"))
+                    _currentTarget.GetComponent<UnitStat>().TakeDamage(data.attackPower, transform.position);
+                else if (_currentTarget.CompareTag("Base"))
+                    _currentTarget.GetComponent<DefenseBase>().TakeDamage(data.attackPower);
             }
-
             _lastAttackTime = Time.time;
         }
     }

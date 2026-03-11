@@ -123,6 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   data: {fileID: 11400000, guid: cd250a5d6d3e1fc48a09023ff1e6a03d, type: 2}
+  enemyArrowPrefab: {fileID: 2758677093137963018, guid: 23241b582f38d3448be8ac4b92ca2c19, type: 3}
   visualChild: {fileID: 2525314359236126091}
   knockbackDistance: 0.3
   knockbackDuration: 0.2

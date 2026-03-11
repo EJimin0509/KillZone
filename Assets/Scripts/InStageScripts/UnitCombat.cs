@@ -22,6 +22,7 @@ public class UnitCombat : MonoBehaviour
     [Header("Combat Settings")]
     [SerializeField] private LayerMask enemyLayer;      // 적 유닛의 레이어
     [SerializeField] private float scanInterval = 0.2f; // 타겟 탐색 주기
+    [SerializeField] private GameObject arrowPrefab; // 화살 프리팹
 
     private void Awake()
     {
@@ -198,11 +199,18 @@ public class UnitCombat : MonoBehaviour
             // 원거리 명중률 체크
             if (_myStat.currentWeapon != null && _myStat.currentWeapon.type == EquipmentType.Bow)
             {
-                // 임시 명중률 로직. 추후 불렛 탄착 로직으로 변경
-                if (Random.Range(0f, 100f) > _myStat.RangeAccuracy) return;
+                // 오브젝트 풀링 사용
+                GameObject arrowObj = SimpleObjectPool.Instance.SpawnFromPool(arrowPrefab, transform.position, Quaternion.identity);
+                Projectile p = arrowObj.GetComponent<Projectile>();
+
+                // 발사 (대미지, 시작위치, 적위치, 명중률, 타겟태그)
+                p.Launch(_myStat.AttackPower, transform.position, target.transform.position, _myStat.RangeAccuracy, "Enemy");
+            }
+            else // 근접 공격
+            {
+                target.TakeDamage(_myStat.AttackPower, transform.position); // 내 위치 정보를 넘겨 넉백 방향 계산
             }
 
-            target.TakeDamage(_myStat.AttackPower, transform.position); // 내 위치 정보를 넘겨 넉백 방향 계산
             _lastAttackTime = Time.time; // 초기화
         }
     }
