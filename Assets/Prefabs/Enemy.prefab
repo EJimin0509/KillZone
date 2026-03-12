@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1894264289930247062}
   - component: {fileID: 3254293467480253811}
   - component: {fileID: 8660400955821169424}
+  - component: {fileID: -6238197055731285756}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Enemy
@@ -185,6 +186,18 @@ MonoBehaviour:
   knockbackDistance: 0.3
   knockbackDuration: 0.2
   CurrentHp: 0
+--- !u!114 &-6238197055731285756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222148337324201583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c852b83773f07c34aa0a8610d76cf88c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StatusEffectHandler
 --- !u!1 &8450284343292909008
 GameObject:
   m_ObjectHideFlags: 0

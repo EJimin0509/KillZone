@@ -169,3 +169,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   breakdownEffect: {fileID: 0}
+  areaSize: {x: 0.1, y: 0.1}
+  centerThreshold: 1
+  customCooldown: 2
+  useUnitAttackSpeed: 1

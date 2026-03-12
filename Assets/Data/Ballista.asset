@@ -15,8 +15,8 @@ MonoBehaviour:
   structureName: Ballista
   type: 3
   cost: 6
-  range: 15
-  damage: 45
+  range: 7
+  damage: 5
   hpOrDurability: 120
   accuracy: 20
   applyEffect: {fileID: 0}

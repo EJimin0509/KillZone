@@ -242,7 +242,7 @@ public class EnemyAI : MonoBehaviour
             // _unitLayer를 우선적으로 타겟팅
             // _unitLayer에는 아군 유닛 뿐만 아니라 체력이 존재하는 구조물도 포함
             Collider2D hit = Physics2D.OverlapCircle(transform.position, data.attackRange * 2f, _unitLayer);
-            
+
             if (hit != null)
             {
                 // 유닛을 발견하면 즉시 타겟 교체 및 경로 갱신

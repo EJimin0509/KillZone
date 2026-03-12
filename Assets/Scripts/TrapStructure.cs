@@ -3,100 +3,109 @@ using System.Collections;
 
 public class TrapStructure : MonoBehaviour
 {
-    public StructureData data; // 인스펙터에서 구조물 데이터 할당
+    [Header("Trap Settings")]
+    public float directDamage = 0f;
+    public StatusEffectData applyEffect;
 
-    private float _currentDurability;
-    private bool _isRepairing = false;
+    [Header("AoE Settings (광역 효과)")]
+    [Tooltip("체크하면 밟았을 때 주변 반경 내의 모든 적에게 효과를 줍니다.")]
+    public bool isAoE = false;
+    public float aoeRadius = 3f;
+    public LayerMask enemyLayer;
 
-    private void Awake()
-    {
-        _currentDurability = data.hpOrDurability;
-    }
+    [Header("Trigger Settings")]
+    [Tooltip("체크하면 한 번 밟았을 때 파괴됩니다. 쿨타임을 쓰려면 체크를 해제하세요.")]
+    public bool destroyOnTrigger = false;
+    [Tooltip("함정 재발동 대기시간 (초 단위)")]
+    public float cooldownTime = 1f;
 
+    private bool _isOnCooldown = false;
+
+    // 적이 함정 영역 안으로 들어오는 순간 감지
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy"))
-        {
-            if (data.type == StructureType.Pad)
-            {
-                TriggerPad(collision.gameObject);
-            }
-            else if (data.type == StructureType.Mine)
-            {
-                TriggerMine();
-            }
-        }
+        TryTriggerTrap(collision);
     }
 
-    // --- 발판(Pad) 로직 ---
-    private void TriggerPad(GameObject enemyObj)
+    // 적이 함정 영역 안에 계속 머물러 있을 때 감지 (쿨타임마다 작동하게 만듦)
+    private void OnTriggerStay2D(Collider2D collision)
     {
-        if (_currentDurability <= 0) return;
-
-        // 명중률 체크
-        if (Random.Range(0f, 100f) > data.accuracy) return;
-
-        EnemyAI enemy = enemyObj.GetComponent<EnemyAI>();
-        if (enemy != null && enemy.CurrentHp > 0)
-        {
-            if (data.damage > 0) enemy.TakeDamage(data.damage, transform.position);
-            ApplyEffect(enemyObj);
-
-            _currentDurability -= 10f; // 1회 작동 시 차감되는 내구도 (기획에 맞게 조절 가능)
-            Debug.Log($"{data.structureName} 작동! 남은 내구도: {_currentDurability}");
-        }
+        TryTriggerTrap(collision);
     }
 
-    // --- 지뢰(Mine) 로직 ---
-    private void TriggerMine()
+    private void TryTriggerTrap(Collider2D collision)
     {
-        Debug.Log($"{data.structureName} 폭발!");
+        if (_isOnCooldown) return;
 
-        // 사거리(range)를 폭발 반경으로 사용하여 주변 적 탐색
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, data.range);
-        foreach (var hit in hits)
+        EnemyAI enemy = collision.GetComponent<EnemyAI>();
+        if (enemy != null)
         {
-            if (hit.CompareTag("Enemy"))
+            if (isAoE)
             {
-                EnemyAI enemy = hit.GetComponent<EnemyAI>();
-                if (enemy != null && enemy.CurrentHp > 0)
-                {
-                    if (data.damage > 0) enemy.TakeDamage(data.damage, transform.position);
-                    ApplyEffect(hit.gameObject);
-                }
+                ApplyAoEEffect();
+            }
+            else
+            {
+                ApplySingleEffect(enemy);
+            }
+
+            if (destroyOnTrigger)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                StartCoroutine(CooldownRoutine());
             }
         }
-
-        // 1회성이므로 폭발 후 파괴
-        Destroy(gameObject);
     }
 
-    private void ApplyEffect(GameObject target)
+    private IEnumerator CooldownRoutine()
     {
-        if (data.applyEffect != null)
+        _isOnCooldown = true;
+        yield return new WaitForSeconds(cooldownTime);
+        _isOnCooldown = false;
+    }
+
+    private void ApplySingleEffect(EnemyAI target)
+    {
+        if (target == null || target.CurrentHp <= 0) return;
+
+        if (directDamage > 0)
         {
-            IStatusEffectable effectable = target.GetComponent<IStatusEffectable>();
-            effectable?.ApplyStatusEffect(data.applyEffect);
+            target.TakeDamage(directDamage, transform.position);
+        }
+
+        if (applyEffect != null)
+        {
+            StatusEffectHandler handler = target.GetComponent<StatusEffectHandler>();
+            if (handler != null)
+            {
+                handler.ApplyStatusEffect(applyEffect);
+                Debug.Log($"[함정] {target.name}에게 {applyEffect.effectName} 적용!");
+            }
         }
     }
 
-    // --- 수리 로직 (발판 전용) ---
-    public void StartRepair(UnitStat repairingUnit)
+    private void ApplyAoEEffect()
     {
-        if (data.type != StructureType.Pad || _isRepairing || _currentDurability >= data.hpOrDurability) return;
-        StartCoroutine(RepairRoutine(repairingUnit.RepairSpeed));
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, aoeRadius, enemyLayer);
+        foreach (Collider2D hit in hits)
+        {
+            EnemyAI target = hit.GetComponent<EnemyAI>();
+            if (target != null)
+            {
+                ApplySingleEffect(target);
+            }
+        }
     }
 
-    private IEnumerator RepairRoutine(float unitRepairSpeed)
+    private void OnDrawGizmosSelected()
     {
-        _isRepairing = true;
-        float repairTime = 5f / Mathf.Max(unitRepairSpeed, 0.1f);
-        yield return new WaitForSeconds(repairTime);
-
-        float healAmount = data.hpOrDurability * 0.5f; // 최대치의 50% 회복
-        _currentDurability = Mathf.Min(_currentDurability + healAmount, data.hpOrDurability);
-
-        Debug.Log($"수리 완료! 현재 내구도: {_currentDurability}");
-        _isRepairing = false;
+        if (isAoE)
+        {
+            Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+            Gizmos.DrawSphere(transform.position, aoeRadius);
+        }
     }
 }

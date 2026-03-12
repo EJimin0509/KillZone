@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(StatusEffectHandler))]
 public class MannedStructure : MonoBehaviour, IDamageable
@@ -6,6 +7,18 @@ public class MannedStructure : MonoBehaviour, IDamageable
     public StructureData data;
     [SerializeField] private LayerMask enemyLayer;
     public StatusEffectData breakdownEffect;
+
+    [Header("AOE Settings (3x3)")]
+    [Tooltip("공격 범위 크기 (Ballista/Catapult용 3x3 권장)")]
+    [SerializeField] private Vector2 areaSize = new Vector2(3f, 3f);
+    [Tooltip("Catapult 중심부 데미지/넉백 판정 거리")]
+    [SerializeField] private float centerThreshold = 0.7f;
+
+    [Header("Attack Speed Settings")]
+    [Tooltip("이 구조물 고유의 공격 쿨타임 (초)")]
+    [SerializeField] private float customCooldown = 2.0f;
+    [Tooltip("체크 시: customCooldown / 유닛공속 공식 적용 | 체크 해제 시: customCooldown 고정 적용")]
+    [SerializeField] private bool useUnitAttackSpeed = false;
 
     private float _currentHp;
     private UnitStat _garrisonedUnit;
@@ -36,6 +49,7 @@ public class MannedStructure : MonoBehaviour, IDamageable
             _recentDamageTimer = 0f;
         }
 
+        // 유닛이 배치되어 있고 공격 불가 상태가 아닐 때만 전투 로직 실행
         if (_garrisonedUnit != null && !_effectHandler.IsAttackDisabled)
         {
             HandleCombat();
@@ -48,39 +62,91 @@ public class MannedStructure : MonoBehaviour, IDamageable
 
     private void HandleCombat()
     {
-        if (Time.time < _lastAttackTime + (1f / _garrisonedUnit.AttackSpeed)) return;
+        // 1. 개별 쿨타임 계산
+        float finalCooldown = customCooldown;
+        if (useUnitAttackSpeed && _garrisonedUnit != null && _garrisonedUnit.AttackSpeed > 0)
+        {
+            finalCooldown = customCooldown / _garrisonedUnit.AttackSpeed;
+        }
+
+        // 2. 쿨타임 체크 (각 구조물 인스턴스별로 독립 작동)
+        if (Time.time < _lastAttackTime + finalCooldown) return;
 
         float currentRange = data.type == StructureType.Tower ? _garrisonedUnit.AttackRange + data.range : data.range;
 
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, currentRange, enemyLayer);
-        if (hit != null)
+        // 3. 메인 타겟 탐색 (공격의 중심점을 잡기 위함)
+        Collider2D mainTarget = Physics2D.OverlapCircle(transform.position, currentRange, enemyLayer);
+
+        if (mainTarget != null)
         {
-            EnemyAI enemy = hit.GetComponent<EnemyAI>();
-            if (enemy != null && enemy.CurrentHp > 0)
+            Vector3 attackPoint = mainTarget.transform.position;
+            PerformAOEAttack(attackPoint);
+
+            _lastAttackTime = Time.time;
+
+            // 연속 공격 시 과열/고장 누적 로직
+            _continuousAttackTimer += finalCooldown;
+            if (_continuousAttackTimer >= 30f)
             {
-                PerformAttack(enemy);
-                _lastAttackTime = Time.time;
-                _continuousAttackTimer += Time.deltaTime;
-                if (_continuousAttackTimer >= 30f)
-                {
-                    TriggerBreakdown();
-                    _continuousAttackTimer = 0f;
-                }
+                TriggerBreakdown();
+                _continuousAttackTimer = 0f;
             }
         }
     }
 
-    private void PerformAttack(EnemyAI enemy)
+    private void PerformAOEAttack(Vector3 centerPoint)
     {
-        float accuracy = data.type == StructureType.Tower ? _garrisonedUnit.RangeAccuracy : data.accuracy;
-        float damage = data.type == StructureType.Tower ? _garrisonedUnit.AttackPower : data.damage;
+        // 중심점 기준으로 3x3 박스 영역 안의 모든 적 검출
+        Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(centerPoint, areaSize, 0f, enemyLayer);
 
-        if (Random.Range(0f, 100f) <= accuracy)
+        bool isBallista = data.structureName.Contains("Ballista");
+        bool isCatapult = data.structureName.Contains("Catapult");
+
+        foreach (Collider2D enemyCollider in hitEnemies)
         {
-            enemy.TakeDamage(damage, transform.position);
-            if (data.applyEffect != null)
+            EnemyAI enemy = enemyCollider.GetComponent<EnemyAI>();
+            if (enemy == null || enemy.CurrentHp <= 0) continue;
+
+            float distance = Vector2.Distance(centerPoint, enemyCollider.transform.position);
+
+            if (isBallista)
             {
-                enemy.GetComponent<IStatusEffectable>()?.ApplyStatusEffect(data.applyEffect);
+                // Ballista: 3x3 전체 동일 데미지
+                float damage = data.type == StructureType.Tower ? _garrisonedUnit.AttackPower : data.damage;
+                enemy.TakeDamage(damage, transform.position);
+
+                if (data.applyEffect != null)
+                {
+                    enemy.GetComponent<IStatusEffectable>()?.ApplyStatusEffect(data.applyEffect);
+                }
+            }
+            else if (isCatapult)
+            {
+                // Catapult: 중심부/주변부 차등 데미지 및 조건부 넉백
+                float damage_1 = data.damage;
+                float damage_2 = data.damage * 0.5f;
+
+                if (distance <= centerThreshold)
+                {
+                    enemy.TakeDamage(damage_1, transform.position);
+                    if (data.applyEffect != null)
+                    {
+                        enemy.GetComponent<IStatusEffectable>()?.ApplyStatusEffect(data.applyEffect);
+                    }
+                }
+                else
+                {
+                    enemy.TakeDamage(damage_2, transform.position);
+                }
+            }
+            else // Tower 및 기타: 단일 타겟 처리
+            {
+                // OverlapBoxAll 중 첫 번째 적(주 타겟)만 공격
+                if (enemyCollider.gameObject == hitEnemies[0].gameObject)
+                {
+                    float damage = data.type == StructureType.Tower ? _garrisonedUnit.AttackPower : data.damage;
+                    enemy.TakeDamage(damage, transform.position);
+                }
             }
         }
     }
@@ -98,7 +164,6 @@ public class MannedStructure : MonoBehaviour, IDamageable
             unit.RefreshStats();
         }
 
-        // 컴포넌트 강제 종료하여 오작동 방지
         var combat = unit.GetComponent<UnitCombat>();
         if (combat != null) combat.enabled = false;
 
@@ -117,8 +182,6 @@ public class MannedStructure : MonoBehaviour, IDamageable
 
         SpriteRenderer[] srs = unit.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (var sr in srs) sr.sortingOrder = 100;
-
-        Debug.Log($"<color=green>[배치 성공]</color> {unit.data.unitName} 유닛 배치 완료!");
     }
 
     public void UnGarrisonUnit(Vector2 targetPos)
@@ -139,7 +202,6 @@ public class MannedStructure : MonoBehaviour, IDamageable
         SpriteRenderer[] srs = unit.GetComponentsInChildren<SpriteRenderer>(true);
         foreach (var sr in srs) sr.sortingOrder = 0;
 
-        // 컴포넌트 재활성화
         var combat = unit.GetComponent<UnitCombat>();
         if (combat != null) combat.enabled = true;
 
@@ -164,7 +226,6 @@ public class MannedStructure : MonoBehaviour, IDamageable
         }
 
         _garrisonedUnit = null;
-        Debug.Log("<color=yellow>[배치 해제]</color> 지정된 위치로 이동합니다.");
     }
 
     public void TakeDamage(float amount, Vector2 attackerPos = default)
@@ -188,5 +249,15 @@ public class MannedStructure : MonoBehaviour, IDamageable
     {
         if (_garrisonedUnit != null) UnGarrisonUnit(transform.position);
         gameObject.SetActive(false);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.cyan;
+        float range = (data != null) ? data.range : 5f;
+        Gizmos.DrawWireSphere(transform.position, range);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(transform.position, new Vector3(areaSize.x, areaSize.y, 0));
     }
 }

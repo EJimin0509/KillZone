@@ -1,20 +1,31 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public enum EffectType { DoT, StatChange, Interrupt }
-public enum TargetStat { None, HP, HP_MAX, ATK, AS, ACC, DEF, MOVE_SPEED, FIX_SPEED, HP_HEAL, MTL_MAX, MTL_NOW, MTL_SPEED }
+// 이 enum과 클래스들이 없으면 EnemyAI에서 에러가 날 수 있으므로 여기에 정의합니다.
+public enum TargetStat { MoveSpeed, AttackPower, AttackSpeed }
 
-[CreateAssetMenu(fileName = "New Status Effect", menuName = "Scriptable Objects/StatusEffect")]
+[System.Serializable]
+public class StatModifier
+{
+    public TargetStat stat;
+    public float value;
+}
+
+[CreateAssetMenu(fileName = "NewStatusEffect", menuName = "Status Effects/Effect Data")]
 public class StatusEffectData : ScriptableObject
 {
-    public string effectName;            // 상태이상 이름 (예: 출혈, 고장)
-    public EffectType effectType;        // 도트데미지, 스탯값 변동, 중단
-    public TargetStat targetStat;        // 영향을 줄 스탯 종류
+    public string effectName;
+    public float duration;
+    public float tickInterval = 1f;
+    public float dotDamage = 0f;
 
-    public float applyValue;             // 적용 수치 (예: -0.4, 20)
-    public float duration;               // 지속 시간 (0이면 영구 적용)
-    public float tickInterval = 1f;      // DoT 데미지일 경우 틱 간격 (기본 1초)
+    [Header("Knockback Settings")]
+    public float knockbackDistance = 0f;
+    public float knockbackDuration = 0.2f;
 
-    [Header("Interrupt Settings (중단 타입 전용)")]
-    public bool disableAttack = false;   // 공격 비활성화 (고장, 공황 등에 사용)
-    public bool disableMovement = false; // 이동 비활성화 (밀치면서 기절 등에 사용)
+    [Header("Restrictions")]
+    public bool disableMovement;
+    public bool disableAttack;
+
+    public List<StatModifier> statModifiers = new List<StatModifier>();
 }

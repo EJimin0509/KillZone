@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 7648118465544330743}
   - component: {fileID: 470696900419587700}
   - component: {fileID: 4372967038204922781}
+  - component: {fileID: -813076095816688428}
   m_Layer: 7
-  m_Name: Trap_Lock
+  m_Name: Trap_Brun
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -138,3 +139,24 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-813076095816688428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2766990686764607882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0c0c0565c2be5a4eb1feaf7428af88e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapStructure
+  directDamage: 20
+  applyEffect: {fileID: 11400000, guid: 45138bb2bb50dfa4ebd4e16e4ef19859, type: 2}
+  isAoE: 1
+  aoeRadius: 3
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  destroyOnTrigger: 0
+  cooldownTime: 1

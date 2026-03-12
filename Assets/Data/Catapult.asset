@@ -15,9 +15,9 @@ MonoBehaviour:
   structureName: Catapult
   type: 3
   cost: 5
-  range: 20
-  damage: 38
+  range: 10
+  damage: 10
   hpOrDurability: 120
   accuracy: 20
-  applyEffect: {fileID: 0}
+  applyEffect: {fileID: 11400000, guid: 99d616f8fdea5c54980721e6a0ecfb06, type: 2}
   description: 

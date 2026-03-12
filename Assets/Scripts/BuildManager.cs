@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -24,6 +25,9 @@ public class BuildManager : MonoBehaviour
 
     private int _currentCost;
     private int _selectedIndex = 0;
+
+    private Vector3 _lastBuildPos = Vector3.positiveInfinity;
+    private Vector3 _lastRemovePos = Vector3.positiveInfinity;
 
     [Header("Layer Settings")]
     [SerializeField] private LayerMask buildAreaLayer;
@@ -63,10 +67,28 @@ public class BuildManager : MonoBehaviour
 
         HandleNumberInput();
 
-        if (InputManager.Instance.InputActions.Player.LeftClick.WasPerformedThisFrame())
+        if (InputManager.Instance.InputActions.Player.LeftClick.IsPressed())
         {
-            if (EventSystem.current.IsPointerOverGameObject()) return;
-            TryPlaceStructure();
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                TryPlaceStructure();
+            }
+        }
+        else
+        {
+            _lastBuildPos = Vector3.positiveInfinity;
+        }
+
+        if (InputManager.Instance.InputActions.Player.RightClick.IsPressed())
+        {
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                TryRemoveStructure();
+            }
+        }
+        else
+        {
+            _lastRemovePos = Vector3.positiveInfinity;
         }
     }
 
@@ -93,11 +115,7 @@ public class BuildManager : MonoBehaviour
         {
             _selectedIndex = index;
             StructureOption selected = buildOptions[_selectedIndex];
-            Debug.Log($"<color=cyan>[건설 모드]</color> 현재 설치 구조물 변경: <b>{selected.structureName}</b> (비용: {selected.cost})");
-        }
-        else
-        {
-            Debug.LogWarning($"<color=red>[건설 모드]</color> {index + 1}번에 할당된 구조물이 없습니다.");
+            Debug.Log($"[건설 모드] 현재 설치 구조물 변경: {selected.structureName} (비용: {selected.cost})");
         }
     }
 
@@ -105,45 +123,108 @@ public class BuildManager : MonoBehaviour
     {
         if (buildOptions.Count == 0 || buildOptions[_selectedIndex].prefab == null) return;
 
-        StructureOption selectedStructure = buildOptions[_selectedIndex];
-
-        if (_currentCost < selectedStructure.cost)
-        {
-            Debug.LogWarning("비용이 부족합니다!");
-            return;
-        }
-
         Vector2 mouseScreenPos = InputManager.Instance.InputActions.Player.Point.ReadValue<Vector2>();
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
         Vector3 spawnPos = new Vector3(Mathf.Round(mouseWorldPos.x), Mathf.Round(mouseWorldPos.y), 0);
 
-        // 1. 건설 가능 타일맵 레이어 체크
+        if (spawnPos == _lastBuildPos) return;
+
+        StructureOption selectedStructure = buildOptions[_selectedIndex];
+
+        if (_currentCost < selectedStructure.cost) return;
+
         Collider2D buildAreaHit = Physics2D.OverlapPoint(spawnPos, buildAreaLayer);
-        if (buildAreaHit == null)
-        {
-            Debug.Log("건설할 수 없는 구역입니다.");
-            return;
-        }
+        if (buildAreaHit == null) return;
 
-        // 2. 구조물 중복 설치 체크 (OverlapCircle로 넓게 판정)
         Collider2D obstacleHit = Physics2D.OverlapCircle(spawnPos, 0.4f, obstacleLayer);
-        if (obstacleHit != null)
-        {
-            Debug.LogWarning("이미 해당 위치에 다른 구조물이 있습니다!");
-            return;
-        }
+        if (obstacleHit != null) return;
 
-        // 3. 경로 차단 검사
+        _lastBuildPos = spawnPos;
+
+        StartCoroutine(PlaceAndCheckPathRoutine(selectedStructure, spawnPos));
+    }
+
+    private IEnumerator PlaceAndCheckPathRoutine(StructureOption structure, Vector3 pos)
+    {
+        GameObject tempStructure = Instantiate(structure.prefab, pos, Quaternion.identity);
+
+        yield return null;
+
         if (IsPathAvailable())
         {
-            Instantiate(selectedStructure.prefab, spawnPos, Quaternion.identity);
-            _currentCost -= selectedStructure.cost;
+            _currentCost -= structure.cost;
             UpdateCostUI();
-            Debug.Log($"<color=green>[건설 성공]</color> {selectedStructure.structureName} 설치됨.");
+
+            // [추가] 설치 성공 시 벽 연결 처리
+            WallConnector connector = tempStructure.GetComponent<WallConnector>();
+            if (connector != null)
+            {
+                connector.UpdateConnection(); // 내 이미지 갱신
+                connector.NotifyNeighbors();  // 주변 벽 갱신
+            }
         }
         else
         {
-            Debug.LogWarning("길을 완전히 막을 수 없습니다!");
+            Destroy(tempStructure);
+            Debug.LogWarning("해당 위치에 설치하면 적의 이동 경로가 완전히 차단되므로 설치가 취소되었습니다.");
+
+            if (_lastBuildPos == pos)
+            {
+                _lastBuildPos = Vector3.positiveInfinity;
+            }
+        }
+    }
+
+    private void TryRemoveStructure()
+    {
+        Vector2 mouseScreenPos = InputManager.Instance.InputActions.Player.Point.ReadValue<Vector2>();
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
+        Vector3 checkPos = new Vector3(Mathf.Round(mouseWorldPos.x), Mathf.Round(mouseWorldPos.y), 0);
+
+        if (checkPos == _lastRemovePos) return;
+
+        Collider2D obstacleHit = Physics2D.OverlapCircle(checkPos, 0.4f, obstacleLayer);
+
+        if (obstacleHit != null)
+        {
+            string hitName = obstacleHit.gameObject.name.Replace("(Clone)", "").Trim();
+            bool isPlayerStructure = false;
+            int refundAmount = 0;
+
+            foreach (var option in buildOptions)
+            {
+                if (option.prefab.name == hitName)
+                {
+                    refundAmount = option.cost;
+                    isPlayerStructure = true;
+                    break;
+                }
+            }
+
+            if (isPlayerStructure)
+            {
+                _currentCost += refundAmount;
+                if (_currentCost > maxCost) _currentCost = maxCost;
+
+                // [추가] 삭제 전 벽 연결 데이터 캐싱
+                WallConnector connector = obstacleHit.GetComponent<WallConnector>();
+
+                Destroy(obstacleHit.gameObject);
+                UpdateCostUI();
+
+                // [추가] 삭제 직후 주변 벽들에게 나(벽)가 사라졌음을 알려서 이미지를 다시 그리게 함
+                if (connector != null)
+                {
+                    // 오브젝트가 파괴되는 프레임 이후에 주변 벽들이 체크할 수 있도록 짧은 대기 후 실행하거나, 
+                    // 아래 NotifyNeighbors 내부에서 현재 삭제된 위치를 무시하도록 처리되어야 함.
+                    // 간단히 하기 위해 NotifyNeighbors 기능을 활용
+                    connector.NotifyNeighbors();
+                }
+
+                Debug.Log($"[건설 취소] {hitName} 판매됨. 환불: {refundAmount}");
+
+                _lastRemovePos = checkPos;
+            }
         }
     }
 

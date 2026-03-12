@@ -1,39 +1,51 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class StatusEffectHandler : MonoBehaviour, IStatusEffectable
 {
     private Dictionary<string, Coroutine> _activeEffects = new Dictionary<string, Coroutine>();
+    private Coroutine _knockbackCoroutine;
     private IDamageable _healthComponent;
+    private Vector3 _lockedPosition; // 넉백 중 좌표 강제 고정용
 
-    // 외부(UnitStat 등)에서 읽어가서 최종 스탯 계산에 더해줄 변동값 딕셔너리
     public Dictionary<TargetStat, float> StatModifiers = new Dictionary<TargetStat, float>();
 
-    // 상태이상으로 인한 중단 상태 여부 확인
     public bool IsAttackDisabled { get; private set; }
     public bool IsMovementDisabled { get; private set; }
+    public bool IsKnockingBack { get; private set; }
 
     private void Awake()
     {
         _healthComponent = GetComponent<IDamageable>();
     }
 
+    // EnemyAI의 Update가 끝난 후 마지막에 실행되어 위치를 강제로 고정
+    private void LateUpdate()
+    {
+        if (IsKnockingBack)
+        {
+            transform.position = _lockedPosition;
+        }
+    }
+
     public void ApplyStatusEffect(StatusEffectData effect)
     {
+        if (effect == null) return;
         if (_activeEffects.ContainsKey(effect.effectName))
         {
-            // 이미 걸려있는 상태이상이면 지속시간 초기화를 위해 기존 코루틴 정지
             StopCoroutine(_activeEffects[effect.effectName]);
             _activeEffects.Remove(effect.effectName);
+            RevertEffectModifiers(effect);
         }
-
         Coroutine c = StartCoroutine(EffectRoutine(effect));
         _activeEffects.Add(effect.effectName, c);
     }
 
     public void RemoveStatusEffect(StatusEffectData effect)
     {
+        if (effect == null) return;
         if (_activeEffects.ContainsKey(effect.effectName))
         {
             StopCoroutine(_activeEffects[effect.effectName]);
@@ -44,49 +56,78 @@ public class StatusEffectHandler : MonoBehaviour, IStatusEffectable
 
     private IEnumerator EffectRoutine(StatusEffectData effect)
     {
-        float timer = 0f;
+        var agent = GetComponent<NavMeshAgent>();
 
-        // 1. 스탯 변동 및 중단 상태 적용
-        if (effect.effectType == EffectType.StatChange)
+        if (effect.disableAttack) IsAttackDisabled = true;
+        if (effect.disableMovement)
         {
-            if (!StatModifiers.ContainsKey(effect.targetStat)) StatModifiers[effect.targetStat] = 0;
-            StatModifiers[effect.targetStat] += effect.applyValue;
-        }
-        else if (effect.effectType == EffectType.Interrupt)
-        {
-            if (effect.disableAttack) IsAttackDisabled = true;
-            if (effect.disableMovement) IsMovementDisabled = true;
-        }
-
-        // 2. 시간 경과 및 DoT 처리
-        while (effect.duration <= 0 || timer < effect.duration)
-        {
-            if (effect.effectType == EffectType.DoT && _healthComponent != null)
+            IsMovementDisabled = true;
+            if (agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh)
             {
-                _healthComponent.TakeDamage(effect.applyValue); // 매 틱마다 데미지
+                agent.isStopped = true;
+                agent.ResetPath();
+                agent.velocity = Vector3.zero;
             }
-
-            yield return new WaitForSeconds(effect.tickInterval);
-            timer += effect.tickInterval;
-
-            if (effect.duration <= 0) break; // 즉발/영구 효과면 1회 적용 후 루프 탈출
         }
 
-        // 3. 지속시간 종료 시 스탯 및 상태 복구
+        if (effect.knockbackDistance > 0)
+        {
+            if (_knockbackCoroutine != null) StopCoroutine(_knockbackCoroutine);
+            _knockbackCoroutine = StartCoroutine(KnockbackRoutine(effect.knockbackDistance, effect.knockbackDuration, effect.duration));
+        }
+
+        yield return new WaitForSeconds(effect.duration + (effect.knockbackDistance > 0 ? effect.knockbackDuration : 0f));
+
         RevertEffectModifiers(effect);
         _activeEffects.Remove(effect.effectName);
     }
 
+    private IEnumerator KnockbackRoutine(float distance, float pushDuration, float stunDuration)
+    {
+        IsKnockingBack = true;
+        var agent = GetComponent<NavMeshAgent>();
+
+        // 유저님 버전의 로직: EnemyAI의 시각적 코루틴 중단
+        MonoBehaviour targetScript = _healthComponent as MonoBehaviour;
+        if (targetScript != null) targetScript.StopAllCoroutines();
+
+        Vector3 knockbackDir = Vector3.left;
+        SpriteRenderer sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) knockbackDir = new Vector3(sr.flipX ? 1f : -1f, 0, 0);
+
+        Vector3 startPos = transform.position;
+        Vector3 finalTargetPos = startPos + (knockbackDir * distance);
+
+        if (NavMesh.Raycast(startPos, finalTargetPos, out NavMeshHit hit, NavMesh.AllAreas))
+            finalTargetPos = hit.position;
+
+        if (agent != null) agent.enabled = false;
+
+        float time = 0f;
+        while (time < pushDuration)
+        {
+            time += Time.deltaTime;
+            _lockedPosition = Vector3.Lerp(startPos, finalTargetPos, time / pushDuration);
+            transform.position = _lockedPosition;
+            yield return null;
+        }
+
+        _lockedPosition = finalTargetPos;
+        yield return new WaitForSeconds(stunDuration);
+
+        if (agent != null)
+        {
+            agent.enabled = true;
+            agent.Warp(finalTargetPos);
+        }
+        IsKnockingBack = false;
+    }
+
     private void RevertEffectModifiers(StatusEffectData effect)
     {
-        if (effect.effectType == EffectType.StatChange && StatModifiers.ContainsKey(effect.targetStat))
-        {
-            StatModifiers[effect.targetStat] -= effect.applyValue;
-        }
-        else if (effect.effectType == EffectType.Interrupt)
-        {
-            if (effect.disableAttack) IsAttackDisabled = false;
-            if (effect.disableMovement) IsMovementDisabled = false;
-        }
+        IsAttackDisabled = false;
+        IsMovementDisabled = false;
+        var agent = GetComponent<NavMeshAgent>();
+        if (agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh) agent.isStopped = false;
     }
 }
