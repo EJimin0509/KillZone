@@ -43,6 +43,11 @@ public class UnitInventorySceneManager : MonoBehaviour
     public void OnSelectUnit(UnitData unit)
     {
         _selectedUnit = unit;
+        
+        detailNameText.text = unit.unitName;
+
+        unitIllust.sprite = unit.unitSprite;
+
         RefreshEquipVisuals();
     }
 
@@ -52,14 +57,37 @@ public class UnitInventorySceneManager : MonoBehaviour
 
         if (slot == 0) _selectedUnit.equippedHelm = item;
         else if (slot == 1) _selectedUnit.equippedChest = item;
-        else _selectedUnit.equippedWeapon = item;
+        else if (slot == 2) _selectedUnit.equippedWeapon = item;
 
         RefreshEquipVisuals();
     }
 
     private void RefreshEquipVisuals()
     {
-        // 각 버튼의 Image나 Text를 _selectedUnit의 장착 데이터에 맞게 갱신하는 로직 추가
+        if (_selectedUnit == null) return;
+
+        // 장비 버튼의 Image 컴포넌트를 가져와서 스프라이트 교체
+        // 예: helmButton 자식에 있는 Image 컴포넌트 등
+        UpdateSlotVisual(helmButton, _selectedUnit.equippedHelm);
+        UpdateSlotVisual(chestButton, _selectedUnit.equippedChest);
+        UpdateSlotVisual(weaponButton, _selectedUnit.equippedWeapon);
+    }
+
+    private void UpdateSlotVisual(Button button, EquipmentData data)
+    {
+        Image icon = button.GetComponent<Image>(); // 버튼 자체가 아이콘인 경우
+        if (icon == null) icon = button.transform.Find("Icon")?.GetComponent<Image>();
+
+        if (data != null && data.equipSprite != null)
+        {
+            icon.sprite = data.equipSprite;
+            icon.color = Color.white;
+        }
+        else
+        {
+            icon.sprite = null; // 장비 없으면 비움
+            icon.color = new Color(1, 1, 1, 0.2f); // 살짝 투명하게
+        }
     }
 
     // 아군 리스트 생성 및 갱신
@@ -107,8 +135,15 @@ public class UnitInventorySceneManager : MonoBehaviour
     // 우측 상세창 정보 업데이트
     public void SelectUnit(UnitData unit)
     {
+        if (unit == null) return;
+
         _selectedUnit = unit;
         detailNameText.text = unit.unitName;
+
+        if (unitIllust != null)
+        {
+            unitIllust.sprite = unit.unitSprite;
+        }
 
         // 스탯 배열 순서대로 매핑 (UnitData 구조에 맞춰서)
         statTexts[0].text = unit.hp.ToString();
@@ -118,6 +153,8 @@ public class UnitInventorySceneManager : MonoBehaviour
         statTexts[4].text = unit.medic.ToString();
         statTexts[5].text = unit.will.ToString();
         statTexts[6].text = unit.faith.ToString();
+
+        RefreshEquipVisuals();
 
         Debug.Log($"{unit.unitName} 상세 정보 표시 중");
     }

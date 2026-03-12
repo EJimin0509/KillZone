@@ -54,6 +54,16 @@ public class StageUnitSpawner : MonoBehaviour
 
             // 프리팹 생성
             GameObject unitGo = Instantiate(unitBasePrefab, spawnPos, Quaternion.identity);
+            UnitData data = formation[i];
+
+            SpriteRenderer sr = unitGo.GetComponentInChildren<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = data.unitSprite;
+            }
+
+            // 오브젝트 이름 변경
+            unitGo.name = $"Ally_{data.unitName}";
 
             // 데이터 주입
             UnitStat unitStat = unitGo.GetComponent<UnitStat>();

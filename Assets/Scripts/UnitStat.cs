@@ -169,5 +169,19 @@ public class UnitStat : MonoBehaviour
         _isKnockbacking = false;
     }
 
+    public void UpdateEquipmentVisuals(UnitData data, GameObject unitGo)
+    {
+        // 자식 오브젝트에서 각 부위의 SpriteRenderer를 찾음
+        SpriteRenderer helmSR = unitGo.transform.Find("Visual/Helm")?.GetComponent<SpriteRenderer>();
+        SpriteRenderer chestSR = unitGo.transform.Find("Visual/Chest")?.GetComponent<SpriteRenderer>();
+        SpriteRenderer weaponSR = unitGo.transform.Find("Visual/Weapon")?.GetComponent<SpriteRenderer>();
+
+        // 장착된 아이템이 있다면 스프라이트 적용, 없으면 투명하게
+        if (helmSR != null) helmSR.sprite = data.equippedHelm?.equipSprite;
+        if (chestSR != null) chestSR.sprite = data.equippedChest?.equipSprite;
+        if (weaponSR != null) weaponSR.sprite = data.equippedWeapon?.equipSprite;
+    }
+
+
     private void Die() => gameObject.SetActive(false);
 }

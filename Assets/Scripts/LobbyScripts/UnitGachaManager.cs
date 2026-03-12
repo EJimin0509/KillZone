@@ -4,7 +4,9 @@ public class UnitGachaManager : MonoBehaviour
 {
     public UnitGenerator generator;
     public UnitGachaUI gachaUI; // 유닛 표시 UI
-    
+
+    public UnitAppearanceDatabase appearanceDB;
+
     private UnitData _lastGeneratedStat;
     private bool _canReroll = false;
 
@@ -25,7 +27,12 @@ public class UnitGachaManager : MonoBehaviour
         }
 
         _lastGeneratedStat = generator.GenerateRandomUnit();
-        _lastGeneratedStat.unitName = "용병이"; // 추후 랜덤 네이밍 설정
+        
+        if (appearanceDB != null)
+        {
+            _lastGeneratedStat.unitName = appearanceDB.GetRandomName();
+            _lastGeneratedStat.unitSprite = appearanceDB.GetRandomSprite();
+        }
 
         if (InventoryManager.Instance == null)
         {
@@ -51,7 +58,12 @@ public class UnitGachaManager : MonoBehaviour
         if (!_canReroll) return;
 
         _lastGeneratedStat = generator.GenerateRandomUnit();
-        _lastGeneratedStat.unitName = "용병이";
+        
+        if (appearanceDB != null)
+        {
+            _lastGeneratedStat.unitName = appearanceDB.GetRandomName();
+            _lastGeneratedStat.unitSprite = appearanceDB.GetRandomSprite();
+        }
 
         _canReroll = false; // 재분배 기회 소진
 

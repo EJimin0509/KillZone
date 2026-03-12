@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9e00e94f66c9e24db2f543826af1241, type: 3}
+  m_Name: 207
+  m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
+  equipName: "\uD034\uB808\uC2DC\uC5B4 \uC544\uBA38"
+  type: 3
+  equipSprite: {fileID: -6702876299118751804, guid: 1416614edddf54e2bb98c61ab32dc586, type: 3}
+  attackSpeedBonus: 0
+  attackRange: 1.5
+  defense: 26
+  additionalStatBonuses: []

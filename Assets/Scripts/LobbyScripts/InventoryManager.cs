@@ -9,7 +9,7 @@ public class InventoryManager : MonoBehaviour
     public List<UnitData> myUnits = new List<UnitData>();
     public List<EquipmentData> myEquipments = new List<EquipmentData>();
 
-    [Header("스테이지 편성 (최대 5명)")]
+    [Header("스테이지 편성 (최대 10명)")]
     public UnitData[] formationSlots = new UnitData[10];
 
     private void Awake()

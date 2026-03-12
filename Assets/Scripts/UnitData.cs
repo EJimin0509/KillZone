@@ -9,7 +9,9 @@ public class UnitData : ScriptableObject
     public EquipmentData equippedChest;
     public EquipmentData equippedWeapon;
 
+    [Header("외형 정보")]
     public string unitName;
+    public Sprite unitSprite;
 
     [Header("Base Stat Levels (0-10)")]
     public int hp;      // 체력

@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.AI; // NavMesh API 사용을 위해 추가
+using UnityEngine.Tilemaps;
 
 /// <summary>
 /// A* 알고리즘(NavMesh 데이터 활용)을 통해 경로 찾기 및 전투를 담당하는 적 AI
@@ -17,6 +18,12 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private Transform visualChild; // 자식 오브젝트인 Visual을 드래그 앤 드롭
     [SerializeField] private float knockbackDistance = 0.3f; // 밀려나는 거리
     [SerializeField] private float knockbackDuration = 0.2f; // 복귀까지 걸리는 시간
+
+    private float baseSpeed; // 기본 이동 속도
+
+    [Header("Biome Settings")]
+    public Tilemap biomeTilemap; // 인스펙터에서 Biome Layer 타일맵 할당
+    public float slowMultiplier = 0.7f; // 감속 비율
 
     public float CurrentHp; // 현재 체력 (아군 UnitCombat에서 참조함)
     private float _lastAttackTime; // 마지막 공격 시점
@@ -35,6 +42,8 @@ public class EnemyAI : MonoBehaviour
         _spriteRenderer = GetComponentInChildren<SpriteRenderer>(); // 자식 스프라이트 렌더러 참조
         _agent = GetComponent<NavMeshAgent>(); // 컴포넌트 할당
         _obstacle = GetComponent<NavMeshObstacle>(); // 컴포넌트 할당
+        baseSpeed = _agent.speed; // 초기 속도 저장
+
 
         if (_obstacle != null)
         {
@@ -95,6 +104,8 @@ public class EnemyAI : MonoBehaviour
         // 사망 상태이거나 넉백 중일 때는 모든 행동(이동/공격)을 중지
         if (CurrentHp <= 0 || _isKnockbacking) return;
 
+        CheckCurrentTerrain();
+
         // 1. 타겟팅 처리 (주변 아군 탐색 및 유효성 검사)
         HandleTargeting();
 
@@ -130,6 +141,30 @@ public class EnemyAI : MonoBehaviour
             if (_agent.isActiveAndEnabled) _agent.isStopped = true;
         }
     }
+
+    private void CheckCurrentTerrain()
+    {
+        if (biomeTilemap == null) return;
+
+        // 1. 적의 현재 위치를 타일맵의 셀 좌표로 변환
+        Vector3Int cellPosition = biomeTilemap.WorldToCell(transform.position);
+
+        // 2. 해당 좌표에 타일이 있는지 확인
+        TileBase currentTile = biomeTilemap.GetTile(cellPosition);
+
+        if (currentTile != null)
+        {
+            // 타일을 밟고 있다면 속도 감소
+            _agent.speed = baseSpeed * slowMultiplier;
+            // Debug.Log("감속 지대 통과 중!");
+        }
+        else
+        {
+            // 타일이 없는 일반 땅이라면 속도 복구
+            _agent.speed = baseSpeed;
+        }
+    }
+
 
     // 공격 상태일 때 Agent를 끄고 Obstacle을 켜서 장애물로 변신 (요청 사항 2, 3번)
     private void StopAndAttack()

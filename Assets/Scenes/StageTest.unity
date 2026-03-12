@@ -992,6 +992,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 5148215926059310279, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
+      propertyPath: m_TagString
+      value: Biome
+      objectReference: {fileID: 0}
     - target: {fileID: 5815883419107320530, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_CellLayout
       value: 0
