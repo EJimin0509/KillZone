@@ -6,8 +6,8 @@ public class FormationManager : MonoBehaviour
     public static FormationManager Instance;
 
     [Header("Formation Settings")]
-    [SerializeField] private int maxSlotCount = 5;
-    public UnitData[] formationSlots = new UnitData[5]; // 0~4¹ø ½½·Ô
+    [SerializeField] private int maxSlotCount = 10;
+    public UnitData[] formationSlots = new UnitData[10]; // 0~9¹ø ½½·Ô
 
     private void Awake()
     {

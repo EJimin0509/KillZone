@@ -20,6 +20,8 @@ public class UnitInventorySceneManager : MonoBehaviour
     public Button weaponButton;
     public EquipmentSelectPopup selectPopup;
 
+    public Button formationButton; // 전투 선택
+
     private UnitData _selectedUnit;
 
     private void Start()
@@ -118,5 +120,40 @@ public class UnitInventorySceneManager : MonoBehaviour
         statTexts[6].text = unit.faith.ToString();
 
         Debug.Log($"{unit.unitName} 상세 정보 표시 중");
+    }
+
+    public void OnFormationButtonClick()
+    {
+        if (_selectedUnit == null) return;
+
+        // 빈 슬롯을 찾아 유닛을 넣습니다.
+        bool success = false;
+        for (int i = 0; i < FormationManager.Instance.formationSlots.Length; i++)
+        {
+            // 이미 배치된 유닛인지 확인 (중복 방지)
+            if (FormationManager.Instance.formationSlots[i] == _selectedUnit)
+            {
+                Debug.Log("이미 배치된 유닛입니다.");
+                return;
+            }
+
+            // 빈 자리가 있다면 배치
+            if (FormationManager.Instance.formationSlots[i] == null)
+            {
+                FormationManager.Instance.SetUnitToSlot(i, _selectedUnit);
+                success = true;
+                break;
+            }
+        }
+
+        if (success)
+        {
+            Debug.Log($"{_selectedUnit.unitName}을(를) 편성에 추가했습니다!");
+            // 여기서 편성 UI가 있다면 갱신해주는 로직을 넣으면 좋습니다.
+        }
+        else
+        {
+            Debug.LogWarning("편성 슬롯이 가득 찼습니다!");
+        }
     }
 }

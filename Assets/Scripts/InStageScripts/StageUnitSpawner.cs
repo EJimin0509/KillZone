@@ -40,14 +40,22 @@ public class StageUnitSpawner : MonoBehaviour
                 continue;
             }
 
-            // 1. 위치 계산
+            // 위치 계산(Base)
             Vector3 spawnPos = baseTransform != null ? baseTransform.position : Vector3.zero;
-            spawnPos += new Vector3(Random.Range(-spawnRadius, spawnRadius), Random.Range(-spawnRadius, spawnRadius), 0);
 
-            // 2. 프리팹 생성
+            // Y축 위쪽으로 최소 1.5m ~ 최대 4m 정도 떨어뜨림 (Base와 겹치지 않게)
+            float verticalOffset = Random.Range(1.5f, 4.0f);
+
+            // X축은 좌우로 적당히 퍼지게 설정
+            float horizontalOffset = Random.Range(-spawnRadius, spawnRadius);
+
+            // 최종 좌표 적용
+            spawnPos += new Vector3(horizontalOffset, verticalOffset, 0);
+
+            // 프리팹 생성
             GameObject unitGo = Instantiate(unitBasePrefab, spawnPos, Quaternion.identity);
 
-            // 3. 데이터 주입
+            // 데이터 주입
             UnitStat unitStat = unitGo.GetComponent<UnitStat>();
             if (unitStat != null)
             {
