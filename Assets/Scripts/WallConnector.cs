@@ -2,8 +2,7 @@ using UnityEngine;
 
 public class WallConnector : MonoBehaviour
 {
-    [Header("Sprite Settings (0~15 순서대로 넣어주세요)")]
-    [Tooltip("0:없음, 1:상, 2:우, 3:상우, 4:하, 5:상하, 6:우하, 7:상우하, 8:좌... 15:상하좌우")]
+    [Header("Sprite Settings (0~15)")]
     public Sprite[] wallSprites = new Sprite[16];
 
     private SpriteRenderer _spriteRenderer;
@@ -12,54 +11,60 @@ public class WallConnector : MonoBehaviour
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _wallLayer = LayerMask.GetMask("Wall"); // 벽 레이어를 Wall로 설정해야 합니다.
+        _wallLayer = LayerMask.GetMask("Wall");
     }
 
-    // (1) 현재 내 벽의 이미지를 갱신하는 함수
     public void UpdateConnection()
     {
         int bitmask = 0;
 
-        // 상 (0, 1)
+        // 주변 벽 체크 (상, 우, 하, 좌 순서)
         if (CheckWallAt(Vector2.up)) bitmask += 1;
-        // 우 (1, 0)
         if (CheckWallAt(Vector2.right)) bitmask += 2;
-        // 하 (0, -1)
         if (CheckWallAt(Vector2.down)) bitmask += 4;
-        // 좌 (-1, 0)
         if (CheckWallAt(Vector2.left)) bitmask += 8;
 
-        // 계산된 bitmask 값에 해당하는 스프라이트로 교체
-        if (bitmask < wallSprites.Length && wallSprites[bitmask] != null)
+        if (_spriteRenderer != null && bitmask < wallSprites.Length)
         {
-            _spriteRenderer.sprite = wallSprites[bitmask];
+            if (wallSprites[bitmask] != null)
+            {
+                _spriteRenderer.sprite = wallSprites[bitmask];
+                // 검게 보인다면 아래 코드가 도움이 될 수 있습니다.
+                _spriteRenderer.color = Color.white;
+            }
+            else
+            {
+                Debug.LogWarning($"{gameObject.name}: 비트마스크 {bitmask}번에 스프라이트가 없습니다!");
+            }
         }
     }
 
-    // 주변 1칸 거리에 벽이 있는지 체크
     private bool CheckWallAt(Vector2 direction)
     {
-        // 0.8f~1.0f 정도의 거리로 레이캐스트를 쏘아 인접한 벽 확인
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 1.1f, _wallLayer);
-        return hit.collider != null && hit.collider.gameObject != gameObject;
+        // 0.4f 반경의 원으로 인접한 벽을 찾습니다. (레이캐스트보다 정확할 수 있음)
+        Collider2D hit = Physics2D.OverlapCircle((Vector2)transform.position + direction, 0.2f, _wallLayer);
+        return hit != null && hit.gameObject != gameObject;
     }
 
-    // (2) 내 주변 4방향의 벽들도 갱신하도록 명령
     public void NotifyNeighbors()
     {
         Vector2[] directions = { Vector2.up, Vector2.right, Vector2.down, Vector2.left };
-
         foreach (Vector2 dir in directions)
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, 1.1f, _wallLayer);
-            if (hit.collider != null)
+            Collider2D hit = Physics2D.OverlapCircle((Vector2)transform.position + dir, 0.2f, _wallLayer);
+            if (hit != null)
             {
-                var neighboringWall = hit.collider.GetComponent<WallConnector>();
-                if (neighboringWall != null)
-                {
-                    neighboringWall.UpdateConnection();
-                }
+                var neighboringWall = hit.GetComponent<WallConnector>();
+                if (neighboringWall != null) neighboringWall.UpdateConnection();
             }
         }
+    }
+
+    // 삭제될 때 주변 벽들에게 알림
+    private void OnDestroy()
+    {
+        // 씬이 종료되는 중이 아닐 때만 실행
+        if (!gameObject.scene.isLoaded) return;
+        NotifyNeighbors();
     }
 }

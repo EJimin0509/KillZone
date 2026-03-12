@@ -84,7 +84,7 @@ SpriteRenderer:
   m_SortingLayer: 2
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -92,7 +92,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!61 &2491494970746615110
 BoxCollider2D:
@@ -169,19 +169,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WallConnector
   wallSprites:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -1447198226, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 2134504225, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: -677329434, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 835401151, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 581390680, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: -259802707, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 1392045200, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 1447212215, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 1640509609, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 1867438882, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: -256005599, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 1769455247, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: -122229882, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: -395624933, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: 1238157290, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
+  - {fileID: -721765031, guid: fdb4b955c3e2b8845853199d5f076dbc, type: 3}
