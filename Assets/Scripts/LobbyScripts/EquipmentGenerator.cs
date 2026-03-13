@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 public class EquipmentGenerator : MonoBehaviour
 {
+    [Header("Default Sprites")]
+    public Sprite helmSprite;
+    public Sprite chestSprite;
+    public Sprite meleeSprite;
+    public Sprite bowSprite;
+
+    public static EquipmentGenerator Instance;
+
     // 기획서 20P 사양 정의
     private struct EquipmentSpec
     {
@@ -61,6 +69,14 @@ public class EquipmentGenerator : MonoBehaviour
         newItem.equipName = selectedSpec.name;
         newItem.type = randomType;
         newItem.additionalStatBonuses = new List<StatBonus>();
+
+        switch (randomType)
+        {
+            case EquipmentType.Helm: newItem.equipSprite = helmSprite; break;
+            case EquipmentType.Chest: newItem.equipSprite = chestSprite; break;
+            case EquipmentType.Melee: newItem.equipSprite = meleeSprite; break;
+            case EquipmentType.Bow: newItem.equipSprite = bowSprite; break;
+        }
 
         // 부위별 기본 수치 설정 (무기는 사거리, 방어구는 방어력)
         if (randomType == EquipmentType.Melee || randomType == EquipmentType.Bow)

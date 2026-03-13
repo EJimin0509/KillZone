@@ -97,5 +97,22 @@ public class EquipmentInventoryUI : MonoBehaviour
             bonus += $"{b.type}: +{b.bonusLevel}\n";
         }
         bonusStatText.text = bonus;
+
+        if (equipLargeImage != null)
+        {
+            if (data.equipSprite != null)
+            {
+                equipLargeImage.sprite = data.equipSprite;
+                equipLargeImage.color = Color.white; // 불투명하게 설정
+                equipLargeImage.enabled = true;
+            }
+            else
+            {
+                // 이미지가 없는 경우 투명하게 처리
+                equipLargeImage.sprite = null;
+                equipLargeImage.color = new Color(1, 1, 1, 0);
+            }
+        }
     }
+
 }

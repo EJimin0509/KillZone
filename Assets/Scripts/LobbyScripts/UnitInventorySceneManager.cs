@@ -20,6 +20,9 @@ public class UnitInventorySceneManager : MonoBehaviour
     public Button weaponButton;
     public EquipmentSelectPopup selectPopup;
 
+    [Header("Squad Visuals")]
+    public Image[] squadImages; // 인스펙터에서 5개의 스쿼드 이미지 슬롯 연결
+
     public Button formationButton; // 전투 선택
 
     private UnitData _selectedUnit;
@@ -27,6 +30,7 @@ public class UnitInventorySceneManager : MonoBehaviour
     private void Start()
     {
         RefreshUnitList();
+        RefreshSquadVisuals();
         // 첫 번째 용병이 있다면 자동으로 선택
         if (InventoryManager.Instance.myUnits.Count > 0)
         {
@@ -75,18 +79,68 @@ public class UnitInventorySceneManager : MonoBehaviour
 
     private void UpdateSlotVisual(Button button, EquipmentData data)
     {
-        Image icon = button.GetComponent<Image>(); // 버튼 자체가 아이콘인 경우
-        if (icon == null) icon = button.transform.Find("Icon")?.GetComponent<Image>();
+        if (button == null) return;
 
+        // 자식 중에서 "Icon" 오브젝트를 찾음
+        Transform iconTransform = button.transform.Find("Icon");
+        if (iconTransform == null) return;
+
+        Image iconImage = iconTransform.GetComponent<Image>();
+        if (iconImage == null) return;
+
+        // [수정] data.unitSprite가 아니라 data.equipSprite를 참조해야 함
         if (data != null && data.equipSprite != null)
         {
-            icon.sprite = data.equipSprite;
-            icon.color = Color.white;
+            iconImage.sprite = data.equipSprite; // EquipmentData의 변수명과 일치시킴
+            iconImage.color = Color.white;
+            iconImage.enabled = true;
         }
         else
         {
-            icon.sprite = null; // 장비 없으면 비움
-            icon.color = new Color(1, 1, 1, 0.2f); // 살짝 투명하게
+            iconImage.sprite = null;
+            iconImage.color = new Color(1, 1, 1, 0.2f); // 빈 슬롯 표시
+        }
+    }
+
+    // 편성 해제 버튼
+    public void OnRemoveFormationButtonClick()
+    {
+        if (_selectedUnit == null) return;
+
+        for (int i = 0; i < FormationManager.Instance.formationSlots.Length; i++)
+        {
+            if (FormationManager.Instance.formationSlots[i] == _selectedUnit)
+            {
+                FormationManager.Instance.SetUnitToSlot(i, null); // 해당 슬롯 비움
+                Debug.Log($"{_selectedUnit.unitName}을(를) 편성에서 해제했습니다.");
+                RefreshSquadVisuals(); // 비주얼 갱신
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 편성 이미지 갱신
+    /// </summary>
+    public void RefreshSquadVisuals()
+    {
+        for (int i = 0; i < squadImages.Length; i++)
+        {
+            if (i < FormationManager.Instance.formationSlots.Length)
+            {
+                UnitData unitInSlot = FormationManager.Instance.formationSlots[i];
+                if (unitInSlot != null && unitInSlot.unitSprite != null)
+                {
+                    squadImages[i].sprite = unitInSlot.unitSprite;
+                    squadImages[i].color = Color.white;
+                    squadImages[i].enabled = true;
+                }
+                else
+                {
+                    squadImages[i].sprite = null;
+                    squadImages[i].color = new Color(1, 1, 1, 0.2f); // 빈 슬롯은 반투명하게
+                }
+            }
         }
     }
 
@@ -155,6 +209,7 @@ public class UnitInventorySceneManager : MonoBehaviour
         statTexts[6].text = unit.faith.ToString();
 
         RefreshEquipVisuals();
+        RefreshSquadVisuals();
 
         Debug.Log($"{unit.unitName} 상세 정보 표시 중");
     }
@@ -186,7 +241,7 @@ public class UnitInventorySceneManager : MonoBehaviour
         if (success)
         {
             Debug.Log($"{_selectedUnit.unitName}을(를) 편성에 추가했습니다!");
-            // 여기서 편성 UI가 있다면 갱신해주는 로직을 넣으면 좋습니다.
+            RefreshSquadVisuals();
         }
         else
         {

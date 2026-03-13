@@ -2033,6 +2033,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc945dd8d2bbced469866e952a8cfd56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentGenerator
+  helmSprite: {fileID: 21300000, guid: 296fa0f52e1fd47109c6fb6f17968669, type: 3}
+  chestSprite: {fileID: -314589219302796148, guid: 7f34c450245f5488bac2d54b5fbbae81, type: 3}
+  meleeSprite: {fileID: 21300000, guid: 27428f826bad840f9bdbc88d5dcbfa6c, type: 3}
+  bowSprite: {fileID: 21300000, guid: b8a3f9debf9a740ebba84d95c6700721, type: 3}
 --- !u!4 &1004064968
 Transform:
   m_ObjectHideFlags: 0
