@@ -39,6 +39,44 @@ public class SceneLauncher : MonoBehaviour
         SceneManager.LoadScene(5); // 스테이지 씬으로 이동
     }
 
+    public void GoToInStage2()
+    {
+        // 데이터 유실 방지를 위한 최종 동기화
+        for (int i = 0; i < FormationManager.Instance.formationSlots.Length; i++)
+        {
+            InventoryManager.Instance.formationSlots[i] = FormationManager.Instance.formationSlots[i];
+        }
+
+        int count = 0;
+        foreach (var slot in InventoryManager.Instance.formationSlots) if (slot != null) count++;
+
+        if (count == 0)
+        {
+            Debug.LogWarning("편성된 유닛이 없습니다! 최소 한 명은 배치하세요.");
+            return;
+        }
+        SceneManager.LoadScene(6); // 스테이지 씬으로 이동
+    }
+
+    public void GoToInStage3()
+    {
+        // 데이터 유실 방지를 위한 최종 동기화
+        for (int i = 0; i < FormationManager.Instance.formationSlots.Length; i++)
+        {
+            InventoryManager.Instance.formationSlots[i] = FormationManager.Instance.formationSlots[i];
+        }
+
+        int count = 0;
+        foreach (var slot in InventoryManager.Instance.formationSlots) if (slot != null) count++;
+
+        if (count == 0)
+        {
+            Debug.LogWarning("편성된 유닛이 없습니다! 최소 한 명은 배치하세요.");
+            return;
+        }
+        SceneManager.LoadScene(7); // 스테이지 씬으로 이동
+    }
+
     // 스테이지 씬으로 이동
     public void GoToStage()
     {
