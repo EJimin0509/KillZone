@@ -91,7 +91,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1222148337324201583}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -127,6 +127,7 @@ MonoBehaviour:
   visualChild: {fileID: 2525314359236126091}
   knockbackDistance: 0.3
   knockbackDuration: 0.2
+  slowMultiplier: 0.5
   CurrentHp: 0
 --- !u!208 &-2210886608880798137
 NavMeshObstacle:
@@ -153,9 +154,9 @@ NavMeshAgent:
   m_GameObject: {fileID: 1222148337324201583}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
+  m_Radius: 0.4
+  m_Speed: 2
+  m_Acceleration: 50
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0

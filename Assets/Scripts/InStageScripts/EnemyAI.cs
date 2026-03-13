@@ -22,8 +22,8 @@ public class EnemyAI : MonoBehaviour
     private float baseSpeed; // 기본 이동 속도
 
     [Header("Biome Settings")]
-    public Tilemap biomeTilemap; // 인스펙터에서 Biome Layer 타일맵 할당
-    public float slowMultiplier = 0.7f; // 감속 비율
+    public float slowMultiplier = 0.5f; // 감속 비율
+    private int biomeLayer;
 
     public float CurrentHp; // 현재 체력 (아군 UnitCombat에서 참조함)
     private float _lastAttackTime; // 마지막 공격 시점
@@ -42,8 +42,9 @@ public class EnemyAI : MonoBehaviour
         _spriteRenderer = GetComponentInChildren<SpriteRenderer>(); // 자식 스프라이트 렌더러 참조
         _agent = GetComponent<NavMeshAgent>(); // 컴포넌트 할당
         _obstacle = GetComponent<NavMeshObstacle>(); // 컴포넌트 할당
+        
         baseSpeed = _agent.speed; // 초기 속도 저장
-
+        biomeLayer = LayerMask.NameToLayer("Biome");
 
         if (_obstacle != null)
         {
@@ -75,8 +76,6 @@ public class EnemyAI : MonoBehaviour
         if (data != null) CurrentHp = data.maxHp;
         _isKnockbacking = false;
         _currentTarget = null;
-        //_pathIndex = 0;
-        //_pathCorners = null;
         _nextUpdateTime = Time.time;
 
         // NavMeshAgent 재활성화 및 위치 보정
@@ -103,8 +102,6 @@ public class EnemyAI : MonoBehaviour
     {
         // 사망 상태이거나 넉백 중일 때는 모든 행동(이동/공격)을 중지
         if (CurrentHp <= 0 || _isKnockbacking) return;
-
-        CheckCurrentTerrain();
 
         // 1. 타겟팅 처리 (주변 아군 탐색 및 유효성 검사)
         HandleTargeting();
@@ -142,29 +139,24 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void CheckCurrentTerrain()
+    // 트리거 구역(늪, 숲 등)에 진입했을 때
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (biomeTilemap == null) return;
-
-        // 1. 적의 현재 위치를 타일맵의 셀 좌표로 변환
-        Vector3Int cellPosition = biomeTilemap.WorldToCell(transform.position);
-
-        // 2. 해당 좌표에 타일이 있는지 확인
-        TileBase currentTile = biomeTilemap.GetTile(cellPosition);
-
-        if (currentTile != null)
+        if (collision.gameObject.layer == biomeLayer)
         {
-            // 타일을 밟고 있다면 속도 감소
             _agent.speed = baseSpeed * slowMultiplier;
-            // Debug.Log("감속 지대 통과 중!");
-        }
-        else
-        {
-            // 타일이 없는 일반 땅이라면 속도 복구
-            _agent.speed = baseSpeed;
+             //Debug.Log(_agent.speed);
         }
     }
 
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.layer == biomeLayer)
+        {
+            _agent.speed = baseSpeed;
+             //Debug.Log(_agent.speed);
+        }
+    }
 
     // 공격 상태일 때 Agent를 끄고 Obstacle을 켜서 장애물로 변신 (요청 사항 2, 3번)
     private void StopAndAttack()
@@ -192,7 +184,7 @@ public class EnemyAI : MonoBehaviour
         if (_agent.isActiveAndEnabled)
         {
             _agent.isStopped = false;
-            _agent.speed = data.moveSpeed;
+            //_agent.speed = data.moveSpeed;
 
             // 주기적인 경로 갱신으로 연산 부하 분산
             if (Time.time >= _nextUpdateTime)
