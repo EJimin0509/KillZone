@@ -3,16 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class SceneLauncher : MonoBehaviour
 {
-    // 가차 씬에서 인벤토리로 이동
-    public void GoToInventory()
+    // 용병 씬으로 이동
+    public void GoToAlly()
     {
-        SceneManager.LoadScene("ally"); // 인벤토리 씬 이동
+        SceneManager.LoadScene(2); // 용병 씬 이동
     }
 
     // 인벤토리에서 다시 가차 씬으로 이동
     public void GoToGacha()
     {
-        SceneManager.LoadScene("StageHandle"); // 가차 씬 이동
+        SceneManager.LoadScene(4); // 가차 씬 이동
     }
 
     public void GoToEquipmentInven()
