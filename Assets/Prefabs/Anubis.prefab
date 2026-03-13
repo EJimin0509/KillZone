@@ -117,7 +117,7 @@ NavMeshObstacle:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1222148337324201583}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Shape: 1
   m_Extents: {x: 0.5, y: 0.5, z: 0.1}
@@ -162,9 +162,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BossAi
   data: {fileID: 11400000, guid: 8bdf9a20d6dad0249acd412c933a2477, type: 2}
   enemyArrowPrefab: {fileID: 2758677093137963018, guid: 23241b582f38d3448be8ac4b92ca2c19, type: 3}
-  minionPrefabs:
-  - {fileID: 1222148337324201583, guid: fd1cc7b36498e2a479c2dc79dfac4578, type: 3}
-  - {fileID: 1222148337324201583, guid: fd1cc7b36498e2a479c2dc79dfac4578, type: 3}
   visualChild: {fileID: 2588086793244293640}
   knockbackDistance: 0.3
   knockbackDuration: 0.2
@@ -182,6 +179,10 @@ PrefabInstance:
     - target: {fileID: 3900409297092274398, guid: 31b445b0c6f2efb49a6f38e8c9f79814, type: 3}
       propertyPath: m_Name
       value: Anubis
+      objectReference: {fileID: 0}
+    - target: {fileID: 3900409297092274398, guid: 31b445b0c6f2efb49a6f38e8c9f79814, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 4908397055953562260, guid: 31b445b0c6f2efb49a6f38e8c9f79814, type: 3}
       propertyPath: m_LocalPosition.x

@@ -938,9 +938,13 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 1818696886025258434, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2275123990117824967, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2275123990117824967, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingOrder
@@ -980,7 +984,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2395174369566383802, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2395174369566383802, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingOrder
@@ -1216,7 +1220,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6273524894984348044, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingLayer
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6273524894984348044, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingOrder
@@ -1228,7 +1232,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7124946479511573041, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7124946479511573041, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingOrder
@@ -1240,7 +1244,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8176940064287296556, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8176940064287296556, guid: 7ac9aafca737f9140913d1846a27f46d, type: 3}
       propertyPath: m_SortingOrder
@@ -2123,7 +2127,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   waves:
   - waveName: 1
-    enemyPrefab: {fileID: 1222148337324201583, guid: d4e82c932d2aa8442a8d2113b00210b8, type: 3}
+    enemyPrefab: {fileID: 1222148337324201583, guid: aaa34a40614c000469ed1f8df8ede69a, type: 3}
     enemyCount: 3
     spawnInterval: 0.2
   - waveName: 2
@@ -8599,7 +8603,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1139418471274166094, guid: e71c36e5250770a48bee7a3764917d53, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -18.5
+      value: -19.36
       objectReference: {fileID: 0}
     - target: {fileID: 1139418471274166094, guid: e71c36e5250770a48bee7a3764917d53, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8640,6 +8644,14 @@ PrefabInstance:
     - target: {fileID: 2702511245111629457, guid: e71c36e5250770a48bee7a3764917d53, type: 3}
       propertyPath: currentHp
       value: 10000
+      objectReference: {fileID: 0}
+    - target: {fileID: 5608965629150643555, guid: e71c36e5250770a48bee7a3764917d53, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5608965629150643555, guid: e71c36e5250770a48bee7a3764917d53, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 1290662695
       objectReference: {fileID: 0}
     - target: {fileID: 6877989420769789642, guid: e71c36e5250770a48bee7a3764917d53, type: 3}
       propertyPath: m_Name
