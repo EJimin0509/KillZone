@@ -41,6 +41,11 @@ public class UnitInventorySceneManager : MonoBehaviour
         helmButton.onClick.AddListener(() => selectPopup.Open(EquipmentType.Helm, (e) => EquipItem(e, 0)));
         chestButton.onClick.AddListener(() => selectPopup.Open(EquipmentType.Chest, (e) => EquipItem(e, 1)));
         weaponButton.onClick.AddListener(() => selectPopup.Open(EquipmentType.Melee, (e) => EquipItem(e, 2)));
+
+        if (formationButton != null)
+        {
+            formationButton.onClick.AddListener(OnFormationButtonClick);
+        }
     }
 
     // 용병 리스트에서 용병을 선택했을 때 호출
