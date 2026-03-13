@@ -20,7 +20,7 @@ public class SceneLauncher : MonoBehaviour
         SceneManager.LoadScene(3); // 장비 인벤토리 씬으로 이동
     }
 
-    public void GoToStage()
+    public void GoToInStage()
     {
         // 데이터 유실 방지를 위한 최종 동기화
         for (int i = 0; i < FormationManager.Instance.formationSlots.Length; i++)
@@ -37,5 +37,28 @@ public class SceneLauncher : MonoBehaviour
             return;
         }
         SceneManager.LoadScene(4); // 스테이지 씬으로 이동
+    }
+
+    // 스테이지 씬으로 이동
+    public void GoToStage()
+    {
+        SceneManager.LoadScene(1); // 스테이지 선택 씬 이동
+    }
+
+    // 메인으로 돌아가기
+    public void BackToMain()
+    {
+        SceneManager.LoadScene(0); // 메인으로 이동
+    }
+
+    public void ExitGame()
+    {
+#if UNITY_EDITOR
+        // 유니티 에디터에서 실행 중일 때 재생 모드를 종료
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        // 실제 빌드된 게임을 종료
+        Application.Quit();
+#endif
     }
 }

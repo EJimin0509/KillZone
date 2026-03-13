@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f498b0bde63560e49bfb909c4f7924db
+guid: a2c548327856ffe49827da69c502b5f2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5617328184665410769
-    second: buildarea_0
+      213: 5633945201683109913
+    second: kill zone logo_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,49 +96,53 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: buildarea_0
+      name: kill zone logo_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 11
         y: 0
-        width: 130
-        height: 130
+        width: 1502
+        height: 1024
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1dc85c9d832c4fd40800000000000000
-      internalID: 5617328184665410769
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: buildarea_1
-      rect:
-        serializedVersion: 2
-        x: 130
-        y: 0
-        width: 130
-        height: 130
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b9ab78b4803c0bb4392a82ba28ef93be
-      internalID: -2088867430
+      spriteID: 918965e9f4bcf2e40800000000000000
+      internalID: 5633945201683109913
       vertices: []
       indices: 
       edges: []
@@ -147,7 +151,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: fa1255a3c01ef1a4e9055e894ca584e9
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -155,12 +159,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries:
-      - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":2.0,"y":1.0},"gridSpriteSize":{"x":130.0,"y":130.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+      entries: []
     nameFileIdTable:
-      buildarea_0: 5617328184665410769
-      buildarea_1: -2088867430
+      kill zone logo_0: 5633945201683109913
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
