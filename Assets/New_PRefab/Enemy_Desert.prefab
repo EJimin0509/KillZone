@@ -127,7 +127,6 @@ MonoBehaviour:
   visualChild: {fileID: 2525314359236126091}
   knockbackDistance: 0.3
   knockbackDuration: 0.2
-  slowMultiplier: 0.5
   CurrentHp: 0
 --- !u!208 &-2210886608880798137
 NavMeshObstacle:
@@ -244,7 +243,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -519001123
+  m_SortingLayerID: -1696879121
   m_SortingLayer: 2
   m_SortingOrder: 0
   m_MaskInteraction: 0
@@ -256,5 +255,5 @@ SpriteRenderer:
   m_Size: {x: 1.22, y: 1.27}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
