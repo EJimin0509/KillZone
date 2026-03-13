@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic;
+using System.Collections;
 
 [RequireComponent(typeof(StatusEffectHandler))]
 public class MannedStructure : MonoBehaviour, IDamageable
@@ -8,26 +8,27 @@ public class MannedStructure : MonoBehaviour, IDamageable
     [SerializeField] private LayerMask enemyLayer;
     public StatusEffectData breakdownEffect;
 
-    [Header("AOE Settings (3x3)")]
-    [Tooltip("공격 범위 크기 (Ballista/Catapult용 3x3 권장)")]
+    [Header("AOE Settings")]
     [SerializeField] private Vector2 areaSize = new Vector2(3f, 3f);
-    [Tooltip("Catapult 중심부 데미지/넉백 판정 거리")]
     [SerializeField] private float centerThreshold = 0.7f;
 
-    [Header("Attack Speed Settings")]
-    [Tooltip("이 구조물 고유의 공격 쿨타임 (초)")]
-    [SerializeField] private float customCooldown = 2.0f;
-    [Tooltip("체크 시: customCooldown / 유닛공속 공식 적용 | 체크 해제 시: customCooldown 고정 적용")]
+    [Header("Attack Settings")]
+    [SerializeField] private float customCooldown = 5.0f;
     [SerializeField] private bool useUnitAttackSpeed = false;
+    [SerializeField] private float projectileSpeed = 12f;
+    [SerializeField] private float centerDamage = 20f;
+    [SerializeField] private float outerDamage = 10f;
+
+    [Header("Visual Settings")]
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private GameObject projectilePrefab;
 
     private float _currentHp;
     private UnitStat _garrisonedUnit;
     private StatusEffectHandler _effectHandler;
-
+    private Animator _animator;
     private float _lastAttackTime = 0f;
     private float _continuousAttackTimer = 0f;
-    private float _recentDamageTaken = 0f;
-    private float _recentDamageTimer = 0f;
 
     public float CurrentHp => _currentHp;
     public bool HasGarrisonedUnit => _garrisonedUnit != null;
@@ -36,55 +37,47 @@ public class MannedStructure : MonoBehaviour, IDamageable
     {
         _currentHp = data.hpOrDurability;
         _effectHandler = GetComponent<StatusEffectHandler>();
+        _animator = GetComponentInChildren<Animator>();
     }
 
     private void Update()
     {
         if (_currentHp <= 0) return;
-
-        _recentDamageTimer += Time.deltaTime;
-        if (_recentDamageTimer > 1f)
-        {
-            _recentDamageTaken = 0f;
-            _recentDamageTimer = 0f;
-        }
-
-        // 유닛이 배치되어 있고 공격 불가 상태가 아닐 때만 전투 로직 실행
         if (_garrisonedUnit != null && !_effectHandler.IsAttackDisabled)
         {
             HandleCombat();
-        }
-        else if (Time.time - _lastAttackTime > 5f)
-        {
-            _continuousAttackTimer = 0f;
         }
     }
 
     private void HandleCombat()
     {
-        // 1. 개별 쿨타임 계산
         float finalCooldown = customCooldown;
         if (useUnitAttackSpeed && _garrisonedUnit != null && _garrisonedUnit.AttackSpeed > 0)
         {
             finalCooldown = customCooldown / _garrisonedUnit.AttackSpeed;
         }
 
-        // 2. 쿨타임 체크 (각 구조물 인스턴스별로 독립 작동)
         if (Time.time < _lastAttackTime + finalCooldown) return;
 
-        float currentRange = data.type == StructureType.Tower ? _garrisonedUnit.AttackRange + data.range : data.range;
+        float range = data.type == StructureType.Tower ? _garrisonedUnit.AttackRange + data.range : data.range;
+        Collider2D target = Physics2D.OverlapCircle(transform.position, range, enemyLayer);
 
-        // 3. 메인 타겟 탐색 (공격의 중심점을 잡기 위함)
-        Collider2D mainTarget = Physics2D.OverlapCircle(transform.position, currentRange, enemyLayer);
-
-        if (mainTarget != null)
+        if (target != null)
         {
-            Vector3 attackPoint = mainTarget.transform.position;
-            PerformAOEAttack(attackPoint);
-
             _lastAttackTime = Time.time;
+            Debug.Log($"<color=cyan>[Structure]</color> 공격 대상 발견: {target.name}");
 
-            // 연속 공격 시 과열/고장 누적 로직
+            if (_animator != null)
+            {
+                _animator.SetTrigger("Attack");
+                Debug.Log("<color=cyan>[Structure]</color> 애니메이터 트리거 발동");
+            }
+
+            bool isCatapult = data.structureName.Contains("Catapult");
+            float delay = isCatapult ? 0.3f : 0.1f;
+
+            StartCoroutine(ExecuteAttackAfterDelay(target.transform.position, delay, isCatapult));
+
             _continuousAttackTimer += finalCooldown;
             if (_continuousAttackTimer >= 30f)
             {
@@ -94,170 +87,77 @@ public class MannedStructure : MonoBehaviour, IDamageable
         }
     }
 
-    private void PerformAOEAttack(Vector3 centerPoint)
+    // MannedStructure.cs 내부
+
+    private IEnumerator ExecuteAttackAfterDelay(Vector3 targetPos, float delay, bool isCatapult)
     {
-        // 중심점 기준으로 3x3 박스 영역 안의 모든 적 검출
-        Collider2D[] hitEnemies = Physics2D.OverlapBoxAll(centerPoint, areaSize, 0f, enemyLayer);
+        Debug.Log($"<color=green>[Coroutine]</color> {delay}초 대기 시작");
+        yield return new WaitForSeconds(delay);
+        Debug.Log("<color=green>[Coroutine]</color> 투사체 생성 시점 도달");
 
-        bool isBallista = data.structureName.Contains("Ballista");
-        bool isCatapult = data.structureName.Contains("Catapult");
-
-        foreach (Collider2D enemyCollider in hitEnemies)
+        if (isCatapult)
         {
-            EnemyAI enemy = enemyCollider.GetComponent<EnemyAI>();
-            if (enemy == null || enemy.CurrentHp <= 0) continue;
-
-            float distance = Vector2.Distance(centerPoint, enemyCollider.transform.position);
-
-            if (isBallista)
+            // Catapult: 기존 유지 (1발 발사)
+            SpawnProjectile(targetPos, true, centerDamage, outerDamage, areaSize);
+        }
+        else
+        {
+            // Ballista: 3x3 공간에 9개 투사체 '동시' 발사
+            for (int x = -1; x <= 1; x++)
             {
-                // Ballista: 3x3 전체 동일 데미지
-                float damage = data.type == StructureType.Tower ? _garrisonedUnit.AttackPower : data.damage;
-                enemy.TakeDamage(damage, transform.position);
-
-                if (data.applyEffect != null)
+                for (int y = -1; y <= 1; y++)
                 {
-                    enemy.GetComponent<IStatusEffectable>()?.ApplyStatusEffect(data.applyEffect);
+                    Vector3 offsetPos = targetPos + new Vector3(x, y, 0);
+
+                    // SpawnProjectile 함수를 호출하여 9발을 연속으로 생성합니다.
+                    // 루프 안에 yield return이 없으므로, 프레임 지연 없이 즉시 생성됩니다.
+                    SpawnProjectile(offsetPos, false, centerDamage, 0, new Vector2(1f, 1f));
                 }
             }
-            else if (isCatapult)
-            {
-                // Catapult: 중심부/주변부 차등 데미지 및 조건부 넉백
-                float damage_1 = data.damage;
-                float damage_2 = data.damage * 0.5f;
 
-                if (distance <= centerThreshold)
-                {
-                    enemy.TakeDamage(damage_1, transform.position);
-                    if (data.applyEffect != null)
-                    {
-                        enemy.GetComponent<IStatusEffectable>()?.ApplyStatusEffect(data.applyEffect);
-                    }
-                }
-                else
-                {
-                    enemy.TakeDamage(damage_2, transform.position);
-                }
-            }
-            else // Tower 및 기타: 단일 타겟 처리
-            {
-                // OverlapBoxAll 중 첫 번째 적(주 타겟)만 공격
-                if (enemyCollider.gameObject == hitEnemies[0].gameObject)
-                {
-                    float damage = data.type == StructureType.Tower ? _garrisonedUnit.AttackPower : data.damage;
-                    enemy.TakeDamage(damage, transform.position);
-                }
-            }
+            // (선택 사항) 9발이 동시에 나갈 때의 효과음이나 파티클을 여기서 한 번 재생하면 좋습니다.
+            Debug.Log("<color=cyan>[Ballista]</color> 9발 동시 발사!");
         }
     }
 
+    private void SpawnProjectile(Vector3 target, bool isCatapult, float cDmg, float oDmg, Vector2 aoe)
+    {
+        if (projectilePrefab != null && firePoint != null)
+        {
+            GameObject projObj = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+            Projectile proj = projObj.GetComponent<Projectile>();
+            if (proj != null)
+            {
+                proj.Setup(target, projectileSpeed, isCatapult, cDmg, oDmg, aoe, enemyLayer);
+            }
+        }
+        else
+        {
+            Debug.LogError("<color=red>[Error]</color> ProjectilePrefab 또는 FirePoint가 설정되지 않았습니다!");
+        }
+    }
+
+    // --- IDamageable 및 Garrison 관련 로직 ---
+    public void TakeDamage(float amount, Vector2 attackerPos = default) { _currentHp -= amount; if (_currentHp <= 0) Die(); }
     public void GarrisonUnit(UnitStat unit)
     {
-        if (_garrisonedUnit != null) return;
-        _garrisonedUnit = unit;
-
-        if (data.type == StructureType.Tower)
-        {
-            if (!unit.baseLevels.ContainsKey(StatBonusType.RangeAccuracy))
-                unit.baseLevels[StatBonusType.RangeAccuracy] = unit.baseStatLevel;
-            unit.baseLevels[StatBonusType.RangeAccuracy] += 2;
-            unit.RefreshStats();
-        }
-
-        var combat = unit.GetComponent<UnitCombat>();
-        if (combat != null) combat.enabled = false;
-
-        var agent = unit.GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (agent != null) agent.enabled = false;
-
-        var movement = unit.GetComponent<PlayerMovement>();
-        if (movement != null) movement.enabled = false;
-
-        var collider = unit.GetComponent<Collider2D>();
-        if (collider != null) collider.enabled = false;
-
+        if (_garrisonedUnit != null) return; _garrisonedUnit = unit;
+        unit.GetComponent<UnitCombat>().enabled = false;
+        unit.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
         unit.transform.SetParent(this.transform);
         unit.transform.localPosition = new Vector3(0, 0, -1f);
         unit.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
-
-        SpriteRenderer[] srs = unit.GetComponentsInChildren<SpriteRenderer>(true);
-        foreach (var sr in srs) sr.sortingOrder = 100;
     }
-
     public void UnGarrisonUnit(Vector2 targetPos)
     {
         if (_garrisonedUnit == null) return;
-        UnitStat unit = _garrisonedUnit;
-
-        if (data.type == StructureType.Tower)
-        {
-            unit.baseLevels[StatBonusType.RangeAccuracy] -= 2;
-            unit.RefreshStats();
-        }
-
-        unit.transform.SetParent(null);
-        unit.transform.localScale = Vector3.one;
-        unit.transform.position = new Vector3(transform.position.x, transform.position.y, 0f);
-
-        SpriteRenderer[] srs = unit.GetComponentsInChildren<SpriteRenderer>(true);
-        foreach (var sr in srs) sr.sortingOrder = 0;
-
-        var combat = unit.GetComponent<UnitCombat>();
-        if (combat != null) combat.enabled = true;
-
-        var collider = unit.GetComponent<Collider2D>();
-        if (collider != null) collider.enabled = true;
-
-        var agent = unit.GetComponent<UnityEngine.AI.NavMeshAgent>();
-        if (agent != null)
-        {
-            agent.enabled = true;
-            if (UnityEngine.AI.NavMesh.SamplePosition(transform.position, out UnityEngine.AI.NavMeshHit hit, 2.0f, UnityEngine.AI.NavMesh.AllAreas))
-            {
-                agent.Warp(hit.position);
-            }
-        }
-
-        var movement = unit.GetComponent<PlayerMovement>();
-        if (movement != null)
-        {
-            movement.enabled = true;
-            movement.CommandMove(targetPos);
-        }
-
+        _garrisonedUnit.transform.SetParent(null);
+        _garrisonedUnit.transform.localScale = Vector3.one;
+        _garrisonedUnit.GetComponent<UnitCombat>().enabled = true;
+        var agent = _garrisonedUnit.GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (agent != null) { agent.enabled = true; agent.Warp(transform.position); }
         _garrisonedUnit = null;
     }
-
-    public void TakeDamage(float amount, Vector2 attackerPos = default)
-    {
-        _currentHp -= amount;
-        _recentDamageTaken += amount;
-        if (_recentDamageTaken >= data.hpOrDurability * 0.4f)
-        {
-            TriggerBreakdown();
-            _recentDamageTaken = 0f;
-        }
-        if (_currentHp <= 0) Die();
-    }
-
-    private void TriggerBreakdown()
-    {
-        if (breakdownEffect != null) _effectHandler.ApplyStatusEffect(breakdownEffect);
-    }
-
-    private void Die()
-    {
-        if (_garrisonedUnit != null) UnGarrisonUnit(transform.position);
-        gameObject.SetActive(false);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.cyan;
-        float range = (data != null) ? data.range : 5f;
-        Gizmos.DrawWireSphere(transform.position, range);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(transform.position, new Vector3(areaSize.x, areaSize.y, 0));
-    }
+    private void TriggerBreakdown() { if (breakdownEffect != null) _effectHandler.ApplyStatusEffect(breakdownEffect); }
+    private void Die() { if (_garrisonedUnit != null) UnGarrisonUnit(transform.position); gameObject.SetActive(false); }
 }

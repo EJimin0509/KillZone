@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: Slow
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   effectName: Slow
-  statModifiers:
-  - stat: 7
-    value: -0.4
-  dotDamage: 0
-  tickInterval: 1
   duration: 3
-  disableAttack: 0
+  tickInterval: 1
+  dotDamage: 0
+  knockbackDistance: 0
+  knockbackDuration: 0.2
   disableMovement: 0
+  disableAttack: 0
+  statModifiers:
+  - stat: 0
+    value: -0.8

@@ -2006,7 +2006,7 @@ MonoBehaviour:
     prefab: {fileID: 6178769744698016609, guid: 2ffef7bb0c4ace24e9024010b4af615b, type: 3}
     cost: 4
   - structureName: Catapult
-    prefab: {fileID: 1929257831426114824, guid: 808641b502dc8114692790a560cb9344, type: 3}
+    prefab: {fileID: 430567583280801501, guid: cff69b02a5332c043b1a9c5aa81320c4, type: 3}
     cost: 5
   - structureName: Ballista
     prefab: {fileID: 2464461749674657751, guid: 0539ab2ab55aaec4cbb07695e652ffc2, type: 3}
@@ -2026,7 +2026,7 @@ MonoBehaviour:
     m_Bits: 256
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 2176
+    m_Bits: 6272
   enemySpawnPoint: {fileID: 829143206}
   defenseBase: {fileID: 1317501857}
   costText: {fileID: 719059166}
