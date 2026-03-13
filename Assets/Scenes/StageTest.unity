@@ -1952,6 +1952,53 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!1 &902547210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 902547212}
+  - component: {fileID: 902547211}
+  m_Layer: 0
+  m_Name: CommandManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &902547211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902547210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd6e37dcbdd6d484a876c1d459fd2d87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CommandManager
+  structureLayer:
+    serializedVersion: 2
+    m_Bits: 256
+--- !u!4 &902547212
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902547210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.05856, y: 0.08658, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1225175321
 GameObject:
   m_ObjectHideFlags: 0
@@ -1966,6 +2013,7 @@ GameObject:
   - component: {fileID: 1225175323}
   - component: {fileID: 1225175328}
   - component: {fileID: 1225175329}
+  - component: {fileID: 1225175330}
   m_Layer: 8
   m_Name: BuildArea
   m_TagString: Untagged
@@ -8335,6 +8383,42 @@ TilemapCollider2D:
   m_MaximumTileChangeCount: 1000
   m_ExtrusionFactor: 0
   m_UseDelaunayMesh: 0
+--- !u!114 &1225175330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1225175321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed65bcc6a61786e4ab9ab6d7ffafdc0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildManager
+  buildOptions:
+  - structureName: Wall
+    prefab: {fileID: 8480340382883121130, guid: 183d6bdb9fca5ad4db6cb9b1cccfb9e1, type: 3}
+    cost: 1
+  - structureName: Ballista
+    prefab: {fileID: 2464461749674657751, guid: 0539ab2ab55aaec4cbb07695e652ffc2, type: 3}
+    cost: 20
+  - structureName: Catapult
+    prefab: {fileID: 430567583280801501, guid: cff69b02a5332c043b1a9c5aa81320c4, type: 3}
+    cost: 20
+  - structureName: Tower
+    prefab: {fileID: 5504091531464387877, guid: 7d50e7394454cdb43a8bb971d69ea192, type: 3}
+    cost: 20
+  maxCost: 100
+  buildAreaLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 14464
+  enemySpawnPoint: {fileID: 829143206}
+  defenseBase: {fileID: 1317501857}
+  costText: {fileID: 719059166}
+  startButton: {fileID: 293758792}
 --- !u!1001 &1317501856
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8635,3 +8719,4 @@ SceneRoots:
   - {fileID: 558806726}
   - {fileID: 72120250}
   - {fileID: 669002475}
+  - {fileID: 902547212}

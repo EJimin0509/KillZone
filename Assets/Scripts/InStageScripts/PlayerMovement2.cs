@@ -7,17 +7,13 @@ using UnityEngine.EventSystems; // UI 클릭 방지
 // 2. 땅 위에 우클릭(이동 명령)
 // 3. 최단거리 이동 명령
 // 4. 갈 수 있는 경로인지 판단
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement2 : MonoBehaviour
 {
     private NavMeshAgent _agent; // 참조
     private bool _isSelected = false; // 1번 과정으로 유닛이 선택되었는지 확인하기 위한 bool
     private SpriteRenderer _spriteRenderer; // 좌우 반전 로직을 위한 스프라이트 가져오기
     private bool _isLeftClickPending = false; // 클릭 신호를 담을 변수
     private UnitCombat _unitCombat; // 컴포넌트 참조용 추가
-
-    // UI 및 이팩트
-    //[Header("Settings")]
-    //[SerializeField] private GameObject selectionVisual; // 선택 시 표시될 원형 UI 등
 
     // 추가된 통로 1: CommandManager가 현재 유닛의 선택 여부를 확인할 수 있도록 열어둠
     public bool IsSelected => _isSelected;
@@ -44,9 +40,9 @@ public class PlayerMovement : MonoBehaviour
             InputManager.Instance.InputActions.Player.LeftClick.performed += _ => _isLeftClickPending = true; // 좌클릭 신호
             InputManager.Instance.InputActions.Player.RightClick.performed += ctx => // 마우스 우클릭
             {
-                if(_isSelected) // 선택 될 상태일 때만 이동을 시도
-                { 
-                    TryMove(); 
+                if (_isSelected) // 선택 될 상태일 때만 이동을 시도
+                {
+                    TryMove();
                 }
             };
         }
@@ -257,16 +253,5 @@ public class PlayerMovement : MonoBehaviour
                 Gizmos.DrawWireSphere(transform.position, stat.AttackRange);
             }
         }
-    }
-
-    public void SetDestination(Vector3 target)
-    {
-        // 이동 명령 시 Obstacle을 즉시 끄고 Agent를 켭니다.
-        var obstacle = GetComponent<NavMeshObstacle>();
-        if (obstacle != null) obstacle.enabled = false;
-
-        _agent.enabled = true;
-        _agent.isStopped = false;
-        _agent.SetDestination(target);
     }
 }
