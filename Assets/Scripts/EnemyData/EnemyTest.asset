@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: test
   maxHp: 10
-  attackPower: 1
+  attackPower: 100
   defense: 1
   moveSpeed: 2
   attackType: 1

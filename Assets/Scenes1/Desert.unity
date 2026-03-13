@@ -212,7 +212,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   waves:
   - waveName: 1
-    enemyPrefab: {fileID: 1222148337324201583, guid: 0deb3624af23c5a40bcccb071f17aac1, type: 3}
+    enemyPrefab: {fileID: 1222148337324201583, guid: c197cdd191c321142815b15c153fb1ae, type: 3}
     enemyCount: 3
     spawnInterval: 0.2
   minX: -10
