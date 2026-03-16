@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: a7a11668c686d4491b649974d43fc727
+AssetOrigin:
+  serializedVersion: 1
+  productId: 188715
+  packageName: 2D Pixel Unit Maker - SPUM
+  packageVersion: 
+  assetPath: Assets/SPUM/Core/Basic_Resources/Backup_Eye6/Eye2.png
+  uploadId: 0
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -73,7 +80,7 @@ TextureImporter:
   swizzle: 50462976
   cookieLightType: 1
   platformSettings:
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -86,7 +93,7 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -99,8 +106,8 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: iPhone
+  - serializedVersion: 4
+    buildTarget: iOS
     maxTextureSize: 32
     resizeAlgorithm: 0
     textureFormat: 13
@@ -112,7 +119,7 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: Android
     maxTextureSize: 32
     resizeAlgorithm: 0
@@ -125,7 +132,7 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -152,6 +159,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: 0.375, y: 0.375}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
@@ -173,6 +181,7 @@ TextureImporter:
       alignment: 9
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
@@ -184,6 +193,7 @@ TextureImporter:
       edges: []
       weights: []
     outline: []
+    customData: 
     physicsShape: []
     bones: []
     spriteID: 0b2cb246b791b4a38963e59bab69dd89
@@ -193,6 +203,8 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
     nameFileIdTable:
       Back: -3937601588158904074
       Front: -5273283658981390841
@@ -201,10 +213,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 188715
-  packageName: 2D Pixel Unit Maker - SPUM
-  packageVersion: 
-  assetPath: Assets/SPUM/Core/Basic_Resources/Backup_Eye6/Eye2.png
-  uploadId: 0

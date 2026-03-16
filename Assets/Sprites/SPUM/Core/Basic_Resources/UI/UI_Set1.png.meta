@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 0d7d0bf8307514eaf81aa72f558d3fb4
+AssetOrigin:
+  serializedVersion: 1
+  productId: 188715
+  packageName: 2D Pixel Unit Maker - SPUM
+  packageVersion: 
+  assetPath: Assets/SPUM/Core/Basic_Resources/UI/UI_Set1.png
+  uploadId: 0
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -1280,10 +1287,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 188715
-  packageName: 2D Pixel Unit Maker - SPUM
-  packageVersion: 
-  assetPath: Assets/SPUM/Core/Basic_Resources/UI/UI_Set1.png
-  uploadId: 0

@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: e2579aadb18ab4cf1b2461fb9e0f0cdf
+AssetOrigin:
+  serializedVersion: 1
+  productId: 192747
+  packageName: 2D Retro Heroes - SPUM Premium Addon Pack
+  packageVersion: 3.0.0
+  assetPath: Assets/SPUM/Resources/Addons/Legacy/0_Unit/0_Sprite/0_Eye/Eye0.png
+  uploadId: 694042
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -209,10 +216,3 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 192747
-  packageName: 2D Retro Heroes - SPUM Premium Addon Pack
-  packageVersion: 3.0.0
-  assetPath: Assets/SPUM/Resources/Addons/Legacy/0_Unit/0_Sprite/0_Eye/Eye0.png
-  uploadId: 694042
