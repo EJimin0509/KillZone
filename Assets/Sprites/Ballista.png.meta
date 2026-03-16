@@ -113,7 +113,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 190
+        y: 257
         width: 63
         height: 64
       alignment: 0
@@ -183,7 +183,7 @@ TextureImporter:
         width: 63
         height: 62
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -192,6 +192,50 @@ TextureImporter:
       bones: []
       spriteID: bdfe9bd6bb2206540bd7e9a5baa4556b
       internalID: -350018625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ballista_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 190
+        width: 63
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6912c9df3e144f946b18481282a92bcb
+      internalID: 898038283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ballista_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 190
+        width: 63
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6447b863543fa1d4d8ea83973e32f955
+      internalID: 1175579321
       vertices: []
       indices: 
       edges: []
@@ -216,6 +260,8 @@ TextureImporter:
       Ballista_1: 423889326
       Ballista_2: 617465383
       Ballista_3: -350018625
+      Ballista_4: 898038283
+      Ballista_5: 1175579321
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

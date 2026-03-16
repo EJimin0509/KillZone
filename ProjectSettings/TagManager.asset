@@ -8,6 +8,8 @@ TagManager:
   - Base
   - Unit
   - Biome
+  - Structure
+  - Tower
   layers:
   - Default
   - TransparentFX

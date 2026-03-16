@@ -14,9 +14,11 @@ GameObject:
   - component: {fileID: -3698755995851871095}
   - component: {fileID: 2795320884836243305}
   - component: {fileID: 6029962125027876879}
+  - component: {fileID: 4986657436847771939}
+  - component: {fileID: 2167464797966392901}
   m_Layer: 11
   m_Name: Ballista
-  m_TagString: Untagged
+  m_TagString: Structure
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -170,16 +172,13 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64
-  breakdownEffect: {fileID: 0}
-  areaSize: {x: 3, y: 3}
-  centerThreshold: 40
+  garrisonOffset: {x: 0, y: 0.3, z: -1}
+  brokenSprite: {fileID: -350018625, guid: aa3e144fc49ac654ab4715ddac262961, type: 3}
   customCooldown: 3
-  useUnitAttackSpeed: 0
   projectileSpeed: 12
-  centerDamage: 15
-  outerDamage: 0
   firePoint: {fileID: 377109301763999681}
   projectilePrefab: {fileID: 2471260314006764779, guid: 72e92db6a7ac05f4b912ff3ce278e6b5, type: 3}
+  baseDamage: 15
 --- !u!95 &6029962125027876879
 Animator:
   serializedVersion: 7
@@ -202,6 +201,34 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!208 &4986657436847771939
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2464461749674657751}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.984, y: 1, z: 0.1}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5
+--- !u!114 &2167464797966392901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2464461749674657751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d18ea3c414687de46b6476e62e2dd5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StructureProjectile
 --- !u!1 &4740460754061502977
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,7 +254,7 @@ Transform:
   m_GameObject: {fileID: 4740460754061502977}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.54, z: 0}
+  m_LocalPosition: {x: 0, y: 0.703, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -42,7 +42,7 @@ public class EnemyAI : MonoBehaviour
         _spriteRenderer = GetComponentInChildren<SpriteRenderer>(); // 자식 스프라이트 렌더러 참조
         _agent = GetComponent<NavMeshAgent>(); // 컴포넌트 할당
         _obstacle = GetComponent<NavMeshObstacle>(); // 컴포넌트 할당
-        
+
         baseSpeed = _agent.speed; // 초기 속도 저장
         biomeLayer = LayerMask.NameToLayer("Biome");
 
@@ -145,7 +145,7 @@ public class EnemyAI : MonoBehaviour
         if (collision.gameObject.layer == biomeLayer)
         {
             _agent.speed = baseSpeed * slowMultiplier;
-             //Debug.Log(_agent.speed);
+            //Debug.Log(_agent.speed);
         }
     }
 
@@ -154,7 +154,7 @@ public class EnemyAI : MonoBehaviour
         if (collision.gameObject.layer == biomeLayer)
         {
             _agent.speed = baseSpeed;
-             //Debug.Log(_agent.speed);
+            //Debug.Log(_agent.speed);
         }
     }
 
@@ -292,14 +292,21 @@ public class EnemyAI : MonoBehaviour
 
     private bool IsTargetAlive(GameObject target)
     {
-        // 1. 오브젝트 자체가 null이거나 파괴되었는지 체크
         if (target == null) return false;
 
-        // 2. 유닛인 경우 체력 체크
+        // 구조물인 경우 체크
+        var structure = target.GetComponent<MannedStructure>();
+        if (structure != null)
+        {
+            // 체력이 0 이하이거나 IsBroken 상태면 false 반환
+            return structure.CurrentHp > 0 && !structure.IsBroken;
+        }
+
+        // 유닛인 경우
         var unit = target.GetComponent<UnitStat>();
         if (unit != null) return unit.CurrentHp > 0;
 
-        // 3. 베이스인 경우 체력 체크
+        // 베이스인 경우
         var b = target.GetComponent<DefenseBase>();
         if (b != null) return b.currentHp > 0;
 
@@ -309,28 +316,47 @@ public class EnemyAI : MonoBehaviour
     /// <summary>
     /// 유닛이나 Base일 경우 공격하는 메서드
     /// </summary>
+    /// <summary>
+    /// 유닛, 구조물, 또는 Base일 경우 공격하는 메서드
+    /// </summary>
+    /// <summary>
+    /// 유닛, 구조물, 또는 Base일 경우 공격하는 메서드
+    /// </summary>
     private void TryAttack()
     {
+        if (_currentTarget == null) return;
+
         if (Time.time >= _lastAttackTime + (1f / data.attackSpeed))
         {
             if (data.attackType == EnemyType.Range) // 원거리 공격일 경우
             {
-                // 투사체 발사 시 타겟 태그 결정
-                string tagToHit = _currentTarget.CompareTag("Base") ? "Base" : "Unit";
+                // 원거리 공격 타겟 태그 결정 (Base, Unit, Structure, Tower 모두 대응)
+                string tagToHit = "Unit"; // 기본값
+                if (_currentTarget.CompareTag("Base")) tagToHit = "Base";
+                else if (_currentTarget.CompareTag("Structure") || _currentTarget.CompareTag("Tower")) tagToHit = "Structure";
+
                 // 적 원거리 공격 발사
                 GameObject arrowObj = SimpleObjectPool.Instance.SpawnFromPool(enemyArrowPrefab, transform.position, Quaternion.identity);
                 Projectile p = arrowObj.GetComponent<Projectile>();
 
-                // 적의 명중률(accuracy) 반영
-                p.Launch(data.attackPower, transform.position, _currentTarget.transform.position, data.accuracy, tagToHit);
+                if (p != null)
+                {
+                    p.Launch(data.attackPower, transform.position, _currentTarget.transform.position, data.accuracy, tagToHit);
+                }
             }
-            else
+            else // 근접 공격일 경우
             {
-                // 근접 공격
-                if (_currentTarget.CompareTag("Unit"))
-                    _currentTarget.GetComponent<UnitStat>().TakeDamage(data.attackPower, transform.position);
+                // [핵심 수정] 인터페이스를 통해 유닛/구조물/베이스 구분 없이 데미지 전달
+                if (_currentTarget.TryGetComponent(out IDamageable damageable))
+                {
+                    damageable.TakeDamage(data.attackPower, transform.position);
+                    Debug.Log($"<color=red>[근접 공격]</color> {_currentTarget.name}에게 데미지를 입혔습니다.");
+                }
+                // 만약 인터페이스가 없는 예외 케이스(직접 참조)
                 else if (_currentTarget.CompareTag("Base"))
+                {
                     _currentTarget.GetComponent<DefenseBase>().TakeDamage(data.attackPower);
+                }
             }
             _lastAttackTime = Time.time;
         }
@@ -338,37 +364,67 @@ public class EnemyAI : MonoBehaviour
 
     private void HandleTargeting()
     {
-        bool isTargetingUnit = _currentTarget != null && _currentTarget.CompareTag("Unit");
+        // 1. 기본 목표인 Base 확인
+        GameObject baseObj = DefenseBase.Current != null ? DefenseBase.Current.gameObject : null;
 
-        // _unitLayer를 우선적으로 타겟팅
-        // _unitLayer에는 아군 유닛 뿐만 아니라 체력이 존재하는 구조물도 포함
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, data.attackRange * 2f, _unitLayer);
+        // 2. 주변 모든 레이어의 대상 탐색 (사거리의 2배 범위)
+        // 기존 _unitLayer 대신 모든 것을 감지할 수 있도록 하거나, 구조물 레이어가 포함되었는지 확인이 필요합니다.
+        // 여기서는 안전하게 모든 레이어를 체크하되, 필요한 레이어만 필터링합니다.
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, data.attackRange * 2f);
 
-        if (hit != null)
+        GameObject bestTarget = null;
+        int highestPriority = -1;
+
+        foreach (var hit in hits)
         {
-            // [디버그] 유닛 감지 성공 시 로그
-            //if (_currentTarget != hit.gameObject)
-            //{
-            //    Debug.Log($"<color=red>[적 AI]</color> 아군 유닛 발견! 타겟 교체: {hit.gameObject.name}");
-            //}
-            // 유닛을 발견하면 즉시 타겟 교체 및 경로 갱신
-            _currentTarget = hit.gameObject;
-            //UpdatePath();
-            return; // 유닛을 잡았으므로 아래 Base 설정 로직 건너뜀
+            // 타겟이 살아있는지 먼저 체크
+            if (!IsTargetAlive(hit.gameObject)) continue;
+
+            int currentPriority = 0;
+
+            // --- [우선순위 판별 로직 보강] ---
+
+            // 순위 1: Base (최우선)
+            if (hit.CompareTag("Base"))
+            {
+                currentPriority = 3;
+            }
+            // 순위 2: Structure 또는 Tower (태그 + 컴포넌트 교차 체크)
+            else if (hit.CompareTag("Structure") || hit.CompareTag("Tower") || hit.GetComponent<MannedStructure>() != null)
+            {
+                currentPriority = 2;
+                // Debug.Log($"<color=cyan>[감지]</color> 구조물 발견: {hit.name}");
+            }
+            // 순위 3: Unit
+            else if (hit.CompareTag("Unit"))
+            {
+                currentPriority = 1;
+            }
+
+            // 우선순위가 더 높거나, 같으면 더 가까운 것 선택
+            if (currentPriority > highestPriority && currentPriority > 0)
+            {
+                highestPriority = currentPriority;
+                bestTarget = hit.gameObject;
+            }
+            else if (currentPriority == highestPriority && bestTarget != null)
+            {
+                if (Vector2.Distance(transform.position, hit.transform.position) <
+                    Vector2.Distance(transform.position, bestTarget.transform.position))
+                {
+                    bestTarget = hit.gameObject;
+                }
+            }
         }
 
-        // 유닛을 타겟팅 중이 아니거나, 기존 타겟이 죽었다면 Base로 설정
-        if (!IsTargetAlive(_currentTarget))
+        // --- [최종 타겟 할당] ---
+        if (bestTarget != null)
         {
-            if (DefenseBase.Current != null)
-            {
-                _currentTarget = DefenseBase.Current.gameObject;
-            }
-            else
-            {
-                _currentTarget = null;
-            }
+            _currentTarget = bestTarget;
+        }
+        else
+        {
+            _currentTarget = baseObj;
         }
     }
 }
-

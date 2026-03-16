@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4266153300779786579}
   - component: {fileID: 8437281487445792390}
-  m_Layer: 3
+  m_Layer: 14
   m_Name: KnockbackVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 6944689741692689972}
   - component: {fileID: 6341435834895249089}
   - component: {fileID: 4446275434904554497}
-  m_Layer: 3
+  m_Layer: 14
   m_Name: Unit
   m_TagString: Unit
   m_Icon: {fileID: 0}
