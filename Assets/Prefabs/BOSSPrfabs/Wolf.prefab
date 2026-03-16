@@ -157,20 +157,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1222148337324201583}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a5575b784f354419e560941b0eb414, type: 3}
+  m_Script: {fileID: 11500000, guid: 907c5a5c12156fe4995e2e0a9ef715df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAi
-  data: {fileID: 11400000, guid: 8bdf9a20d6dad0249acd412c933a2477, type: 2}
-  enemyArrowPrefab: {fileID: 2758677093137963018, guid: 23241b582f38d3448be8ac4b92ca2c19, type: 3}
-  minionPrefabs:
-  - {fileID: 1222148337324201583, guid: fd1cc7b36498e2a479c2dc79dfac4578, type: 3}
-  - {fileID: 1222148337324201583, guid: fd1cc7b36498e2a479c2dc79dfac4578, type: 3}
+  data: {fileID: 11400000, guid: 7f12b96ef28df6346b07ac8a7b25a1b6, type: 2}
+  enemyArrowPrefab: {fileID: 0}
   visualChild: {fileID: 0}
   knockbackDistance: 0.3
   knockbackDuration: 0.2
-  introDashSpeed: 20
-  introDashDuration: 4
-  CurrentHp: 5000
+  CurrentHp: 0
 --- !u!1001 &5023597182453569572
 PrefabInstance:
   m_ObjectHideFlags: 0
