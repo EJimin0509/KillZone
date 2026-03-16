@@ -7,16 +7,12 @@ public class CommandManager : MonoBehaviour
     public static CommandManager Instance;
 
     [Header("Layer Settings")]
+    [SerializeField] private LayerMask unitLayer;
     [SerializeField] private LayerMask structureLayer;
 
     private PlayerMovement _selectedUnit;
     private MannedStructure _selectedStructure;
-
     private bool _isDeployMode = false;
-    private bool _isUndeployMode = false;
-
-    private PlayerMovement _deployingUnit;
-    private MannedStructure _targetStructure;
 
     private void Awake()
     {
@@ -26,138 +22,95 @@ public class CommandManager : MonoBehaviour
 
     private void Update()
     {
-        // 배치 명령을 받은 유닛이 타워에 근접했는지 감시
-        if (_deployingUnit != null && _targetStructure != null)
+        // 1. 배치 모드 진입 (i키)
+        if (Keyboard.current.iKey.wasPressedThisFrame && _selectedUnit != null)
         {
-            if (!_deployingUnit.gameObject.activeInHierarchy)
-            {
-                _deployingUnit = null;
-                _targetStructure = null;
-            }
-            else if (Vector2.Distance(_deployingUnit.transform.position, _targetStructure.transform.position) <= 2.0f)
-            {
-                _targetStructure.GarrisonUnit(_deployingUnit.GetComponent<UnitStat>());
-                _deployingUnit = null;
-                _targetStructure = null;
-            }
+            _isDeployMode = true;
+            Debug.Log("<color=yellow>[배치]</color> 구조물을 선택하세요.");
         }
 
-        var kb = Keyboard.current;
-        if (kb == null) return;
-
-        // [배치 모드 진입] 'i'
-        if (kb.iKey.wasPressedThisFrame)
-        {
-            // PlayerMovement가 스스로 선택 관리를 하므로, 씬에 있는 모든 유닛 중 선택된 유닛을 찾음
-            _selectedUnit = null;
-            PlayerMovement[] allUnits = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
-            foreach (var u in allUnits)
-            {
-                if (u.IsSelected) _selectedUnit = u;
-            }
-
-            if (_selectedUnit != null)
-            {
-                _isDeployMode = true;
-                _isUndeployMode = false;
-                Debug.Log("<color=yellow>[명령]</color> 배치 모드(i) 활성화. 배치할 구조물을 좌클릭하세요.");
-            }
-        }
-
-        // [해제 모드 진입] 'o'
-        if (kb.oKey.wasPressedThisFrame && _selectedStructure != null && _selectedStructure.HasGarrisonedUnit)
-        {
-            _isUndeployMode = true;
-            _isDeployMode = false;
-            Debug.Log("<color=yellow>[명령]</color> 해제 모드(o) 활성화. 유닛을 내보낼 바닥을 우클릭하세요.");
-        }
-
+        // 2. 왼쪽 클릭 처리
         if (InputManager.Instance.InputActions.Player.LeftClick.WasPerformedThisFrame())
         {
             if (EventSystem.current.IsPointerOverGameObject()) return;
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(InputManager.Instance.InputActions.Player.Point.ReadValue<Vector2>());
 
             if (_isDeployMode) HandleDeployClick(mousePos);
-            else HandleStructureSelection(mousePos);
+            else HandleSelection(mousePos);
         }
 
+        // 3. 오른쪽 클릭 처리 (일반 이동)
         if (InputManager.Instance.InputActions.Player.RightClick.WasPerformedThisFrame())
         {
             if (EventSystem.current.IsPointerOverGameObject()) return;
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(InputManager.Instance.InputActions.Player.Point.ReadValue<Vector2>());
 
-            if (_isUndeployMode)
+            if (_selectedUnit != null && _selectedUnit.IsSelected)
             {
-                HandleUndeployClick(mousePos);
-            }
-            else
-            {
-                // 일반 이동 명령 발생 시 배치 취소 처리
-                PlayerMovement[] allUnits = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
-                foreach (var u in allUnits)
-                {
-                    if (u.IsSelected && _deployingUnit == u)
-                    {
-                        _deployingUnit = null;
-                        _targetStructure = null;
-                    }
-                }
+                _selectedUnit.CommandMove(mousePos); // 일반 이동 시 배치 취소됨
+                _isDeployMode = false;
             }
         }
+
+        // 4. [핵심] 도착 시 배치 실행 (실시간 체크)
+        CheckDeploymentArrival();
     }
 
-    private void HandleStructureSelection(Vector2 mousePos)
+    private void HandleSelection(Vector2 mousePos)
     {
+        Collider2D unitHit = Physics2D.OverlapCircle(mousePos, 0.2f, unitLayer);
+        if (unitHit != null)
+        {
+            if (_selectedUnit != null) _selectedUnit.SetSelected(false);
+            _selectedUnit = unitHit.GetComponent<PlayerMovement>();
+            _selectedUnit.SetSelected(true);
+            return;
+        }
+
         Collider2D structHit = Physics2D.OverlapCircle(mousePos, 0.2f, structureLayer);
         if (structHit != null)
         {
-            MannedStructure ms = structHit.GetComponentInParent<MannedStructure>();
-            if (ms != null)
-            {
-                _selectedStructure = ms;
-                if (ms.HasGarrisonedUnit) Debug.Log("<color=green>[선택]</color> 유닛이 배치된 구조물 선택됨. (해제: o)");
-                else Debug.Log("<color=green>[선택]</color> 구조물이 선택되었습니다.");
-
-                _isDeployMode = false;
-                _isUndeployMode = false;
-            }
-        }
-        else
-        {
-            _selectedStructure = null;
+            _selectedStructure = structHit.GetComponentInParent<MannedStructure>();
+            Debug.Log("구조물 선택됨");
         }
     }
 
     private void HandleDeployClick(Vector2 mousePos)
     {
-        Collider2D hit = Physics2D.OverlapCircle(mousePos, 0.2f, structureLayer);
-        if (hit != null)
+        Collider2D hit = Physics2D.OverlapCircle(mousePos, 0.3f, structureLayer);
+        if (hit != null && _selectedUnit != null)
         {
-            MannedStructure structure = hit.GetComponentInParent<MannedStructure>();
-            if (structure != null)
+            MannedStructure target = hit.GetComponentInParent<MannedStructure>();
+            if (target != null && !target.HasGarrisonedUnit)
             {
-                _deployingUnit = _selectedUnit;
-                _targetStructure = structure;
+                // 목적지 샘플링 후 명령 전달
+                Vector3 dest = target.transform.position;
+                if (UnityEngine.AI.NavMesh.SamplePosition(dest, out UnityEngine.AI.NavMeshHit navHit, 2.0f, UnityEngine.AI.NavMesh.AllAreas))
+                    dest = navHit.position;
 
-                Vector3 safeDest = structure.transform.position;
-                if (UnityEngine.AI.NavMesh.SamplePosition(structure.transform.position, out UnityEngine.AI.NavMeshHit navHit, 3.0f, UnityEngine.AI.NavMesh.AllAreas))
-                {
-                    safeDest = navHit.position;
-                }
-
-                _selectedUnit.CommandMove(safeDest);
-                Debug.Log($"<color=cyan>[명령]</color> 구조물로 이동 후 배치됩니다.");
+                _selectedUnit.CommandDeploy(target, dest);
+                Debug.Log("배치 이동 시작...");
             }
         }
         _isDeployMode = false;
     }
 
-    private void HandleUndeployClick(Vector2 mousePos)
+    private void CheckDeploymentArrival()
     {
-        if (_selectedStructure != null)
+        // 씬에 있는 모든 유닛 중 배치 대기 중인 녀석들 체크
+        PlayerMovement[] allUnits = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
+        foreach (var unit in allUnits)
         {
-            _selectedStructure.UnGarrisonUnit(mousePos);
+            if (unit.IsPendingDeployment && unit.TargetStructure != null)
+            {
+                float dist = Vector2.Distance(unit.transform.position, unit.TargetStructure.transform.position);
+                if (dist <= 1.5f) // 충분히 가까워지면
+                {
+                    unit.TargetStructure.GarrisonUnit(unit.GetComponent<UnitStat>());
+                    unit.CancelDeployment();
+                    Debug.Log("<color=cyan>배치 완료!</color>");
+                }
+            }
         }
-        _isUndeployMode = false;
     }
 }

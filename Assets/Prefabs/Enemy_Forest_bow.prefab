@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3254293467480253811}
   - component: {fileID: 8660400955821169424}
   - component: {fileID: 8029636112356847634}
+  - component: {fileID: -7910833759404416409}
   m_Layer: 6
   m_Name: Enemy_Forest_bow
   m_TagString: Enemy
@@ -128,7 +129,6 @@ MonoBehaviour:
   knockbackDistance: 0.3
   knockbackDuration: 0.2
   hpSlider: {fileID: 6456436256379933508}
-  slowMultiplier: 0.5
   CurrentHp: 0
 --- !u!195 &8029636112356847634
 NavMeshAgent:
@@ -152,6 +152,22 @@ NavMeshAgent:
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!208 &-7910833759404416409
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222148337324201583}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.5, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &3871746794338923714
 GameObject:
   m_ObjectHideFlags: 0

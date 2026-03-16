@@ -14,7 +14,7 @@ public class UnitCombat : MonoBehaviour
     private NavMeshAgent _agent; // 유닛이 NaveMesh 사용 중이므로 NaveMesh 참조
     private float _lastAttackTime; // 공격 속도
     private float _scanTimer; // 스캔 탐색용 타이머
-    //private NavMeshObstacle _obstacle; // 장애물 판정용
+    private NavMeshObstacle _obstacle; // 장애물 판정용
 
     public bool IsForceMoving = false; // 현재 유닛이 강제 이동 명령을 받았는지 확인
     public GameObject CurrentTarget; // 현재 공격중인 타겟을 담을 변수
@@ -28,13 +28,13 @@ public class UnitCombat : MonoBehaviour
     {
         _myStat = GetComponent<UnitStat>(); // UnitStat 컴포넌트 참조
         _agent = GetComponent<NavMeshAgent>(); // NavMeshAgent 컴포넌트 참조
-        //_obstacle = GetComponent<NavMeshObstacle>();
+        _obstacle = GetComponent<NavMeshObstacle>();
 
-        //if (_obstacle != null)
-        //{
-        //    _obstacle.enabled = true;
-        //    _obstacle.carving = false;
-        //}
+        if (_obstacle != null)
+        {
+            _obstacle.enabled = false;
+            _obstacle.carving = true;
+        }
 
         if (_agent != null)
         {
@@ -62,22 +62,29 @@ public class UnitCombat : MonoBehaviour
             }
         }
 
-        // 1. 스캔 타이머 가동
-        if (_scanTimer > 0)
+        if (_scanTimer > 0) _scanTimer -= Time.deltaTime;
+
+        // 3. 타겟이 없거나 강제 이동 중이면 장애물 판정 제거
+        if (IsForceMoving || CurrentTarget == null)
         {
-            if (CurrentTarget == null && !IsForceMoving)
-            {
-                SearchTarget();
-            }
-            _scanTimer = scanInterval;
-        }
-        else
-        {
-            _scanTimer -= Time.deltaTime;
+            DisableObstacle();
         }
 
-        // 2. 타겟 상태 업데이트 및 추적 로직
         HandleCombatAI();
+    }
+
+    private void DisableObstacle()
+    {
+        // 이동 중: 장애물을 끄고 에이전트를 켬
+        if (_obstacle != null && _obstacle.enabled)
+        {
+            _obstacle.enabled = false;
+        }
+
+        if (!_agent.enabled)
+        {
+            _agent.enabled = true;
+        }
     }
 
     /// <summary>
@@ -87,60 +94,63 @@ public class UnitCombat : MonoBehaviour
     /// </summary>
     private void HandleCombatAI()
     {
-        if (IsForceMoving)
-        {
-            if (_agent.isActiveAndEnabled) _agent.avoidancePriority = 50; // 이동 중엔 일반 순위
-            return;
-        }
+        if (IsForceMoving) return;
 
-        // 강제 이동 중이거나 타겟이 없으면 자동 탐색
         if (CurrentTarget != null)
         {
+            float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
             EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
 
             if (targetEnemy == null || targetEnemy.CurrentHp <= 0)
             {
-                CurrentTarget = null;
+                ResetCombat();
                 return;
             }
-            
-            float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
 
-            // 1. 공격 사거리 안인 경우
-            if (dist <= _myStat.AttackRange + 0.8f) // 기존 코드에서 AttackPower를 사거리 변수로 쓰고 계신 것 같습니다.
+            // 사거리 안인 경우 (공격)
+            if (dist <= _myStat.AttackRange)
             {
-                if (_agent.isActiveAndEnabled)
-                {
-                    _agent.isStopped = true;
-                    _agent.velocity = Vector3.zero;
-                    _agent.avoidancePriority = 0;
-                }
-
+                EnableObstacle(); // 공격 시에는 장애물 모드 가동
                 HandleFlip(CurrentTarget.transform.position);
                 TryAttack(targetEnemy);
             }
-            // 2. 사거리 밖인 경우 (추격)
+            // 사거리 밖인 경우 (추격)
             else
             {
-                if (_agent.isActiveAndEnabled)
+                DisableObstacle(); // 이동 시에는 장애물 모드 해제
+                if (_agent.isActiveAndEnabled && _agent.isOnNavMesh)
                 {
                     _agent.isStopped = false;
-                    _agent.avoidancePriority = 50; // 추격(이동) 중엔 우선순위 낮춤
                     _agent.SetDestination(CurrentTarget.transform.position);
                 }
             }
         }
         else
         {
-            // 타겟이 없으면 우선순위 기본값으로
-            if (_agent.isActiveAndEnabled) _agent.avoidancePriority = 50;
+            if (_scanTimer <= 0) { SearchTarget(); _scanTimer = scanInterval; }
         }
     }
 
-   /// <summary>
-   /// 에이전트 재활성화를 위한 코루틴
-   /// </summary>
-   /// <returns></returns>
+    private void EnableObstacle()
+    {
+        // 공격 중: 에이전트를 멈추고 장애물을 켬
+        if (_agent.isActiveAndEnabled)
+        {
+            _agent.isStopped = true;
+            _agent.velocity = Vector3.zero;
+        }
+
+        if (_obstacle != null && !_obstacle.enabled)
+        {
+            _agent.enabled = false; // 에이전트를 아예 꺼야 충돌이 안 일어남
+            _obstacle.enabled = true;
+        }
+    }
+
+    /// <summary>
+    /// 에이전트 재활성화를 위한 코루틴
+    /// </summary>
+    /// <returns></returns>
     //private IEnumerator EnableAgentNextFrame()
     //{
     //    yield return null;
@@ -153,7 +163,6 @@ public class UnitCombat : MonoBehaviour
     public void ResetCombat()
     {
         CurrentTarget = null; // 타겟 NULL
-        IsForceMoving = false; // 정지
     }
 
     /// <summary>
@@ -176,12 +185,8 @@ public class UnitCombat : MonoBehaviour
                 EnemyAI enemy = hit.GetComponent<EnemyAI>();
                 if (enemy != null && enemy.CurrentHp > 0)
                 {
-                    float dist = Vector2.Distance(transform.position, hit.transform.position);
-                    if (dist < closestDist)
-                    {
-                        closestDist = dist;
-                        closestEnemy = hit.gameObject;
-                    }
+                    float d = Vector2.Distance(transform.position, hit.transform.position);
+                    if (d < closestDist) { closestDist = d; closestEnemy = hit.gameObject; }
                 }
             }
         }
@@ -225,12 +230,14 @@ public class UnitCombat : MonoBehaviour
         CurrentTarget = target;
         IsForceMoving = isMoveCommand;
 
+        DisableObstacle(); // 강제 명령 시 즉시 장애물 제거
+
         if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
         {
             _agent.isStopped = false;
-            _agent.avoidancePriority = 50; // 수동 명령 시에도 우선순위 초기화
         }
     }
+
 
     /// <summary>
     /// 공격 중인 방향으로 스프라이트 반전

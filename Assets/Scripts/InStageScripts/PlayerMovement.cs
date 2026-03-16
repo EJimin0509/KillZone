@@ -18,6 +18,10 @@ public class PlayerMovement : MonoBehaviour
     // 추가된 통로 1: CommandManager가 현재 유닛의 선택 여부를 확인할 수 있도록 열어둠
     public bool IsSelected => _isSelected;
 
+    // 배치 관련 상태 추가
+    public bool IsPendingDeployment { get; private set; }
+    public MannedStructure TargetStructure { get; private set; }
+
     // 유닛 레이어만 검사하도록 설정 (Inspector에서 Unit 레이어 선택)
     [SerializeField] private LayerMask unitLayer;
 
@@ -75,6 +79,44 @@ public class PlayerMovement : MonoBehaviour
         }
 
         HandleSpriteFlip(); // 좌우 반전
+    }
+
+    public void SetSelected(bool selected)
+    {
+        //IsSelected = selected;
+        if (_spriteRenderer != null)
+            _spriteRenderer.color = selected ? Color.green : Color.white;
+    }
+
+    // [중요] 배치 전용 이동 명령
+    public void CommandDeploy(MannedStructure structure, Vector3 destination)
+    {
+        IsPendingDeployment = true;
+        TargetStructure = structure;
+        MoveTo(destination);
+    }
+
+    public void CommandMove(Vector3 destination)
+    {
+        CancelDeployment();
+        MoveTo(destination);
+    }
+
+
+    private void MoveTo(Vector3 dest)
+    {
+        if (_agent != null && _agent.isActiveAndEnabled)
+        {
+            _unitCombat.SetManualCommand(null, true);
+            _agent.isStopped = false;
+            _agent.SetDestination(dest);
+        }
+    }
+
+    public void CancelDeployment()
+    {
+        IsPendingDeployment = false;
+        TargetStructure = null;
     }
 
     /// <summary>
