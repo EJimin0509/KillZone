@@ -16,6 +16,6 @@ MonoBehaviour:
   type: 0
   equipSprite: {fileID: 21300000, guid: 9794293e4605a44d0826e3814ddc8431, type: 3}
   attackSpeedBonus: 0
-  attackRange: 1.5
+  attackRange: 2
   defense: 0
   additionalStatBonuses: []

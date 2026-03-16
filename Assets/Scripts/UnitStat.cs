@@ -21,9 +21,9 @@ public class UnitStat : MonoBehaviour
     public float currentFaith;
     public bool isPanicking = false;
     public Color panicColor = Color.magenta; // 패닉 시 강조할 색상
-    private Color _originalFaithColor;
+    private Color _originalBGColor;
     private Coroutine _blinkCoroutine;
-    private Image _faithFillImage; // 슬라이더의 Fill 이미지 참조
+    private Image _faithBGImage;
 
     [Header("UI Reference")]
     public Slider hpSlider;
@@ -40,7 +40,7 @@ public class UnitStat : MonoBehaviour
 
     private bool _isKnockbacking = false;                // 지금 넉백 중인지 판단
     
-    [Range(1, 10)] public int baseStatLevel = 1; // 테스트용 통합 레벨
+    //[Range(1, 10)] public int baseStatLevel = 1; // 테스트용 통합 레벨
 
     public float MaxHp { get; private set; }             // 최대 HP
     public float CurrentHp { get; private set; }         // 현재 HP
@@ -59,28 +59,39 @@ public class UnitStat : MonoBehaviour
 
     private void Awake()
     {
+        _unitCombat = GetComponent("UnitCombat") as MonoBehaviour;
+        _originalLayer = gameObject.layer;
+        _agent = GetComponent<NavMeshAgent>();
+        if (_agent != null) baseSpeed = _agent.speed;
+
         // 생성기로 생성되지 않았을 경우를 대비해 딕셔너리 초기화
         foreach (StatBonusType type in System.Enum.GetValues(typeof(StatBonusType)))
         {
             if (!baseLevels.ContainsKey(type)) baseLevels[type] = 1;
         }
-        RefreshStats(); // 스탯 초기화
         
-        _unitCombat = GetComponent("UnitCombat") as MonoBehaviour;
-        _originalLayer = gameObject.layer;
-        _agent = GetComponent<NavMeshAgent>();
+        RefreshStats(); // 스탯 초기화
+
+        currentFaith = MaxFaith; // 시작 시 풀 정신력
 
         if (faithSlider != null)
         {
-            _faithFillImage = faithSlider.fillRect.GetComponent<Image>();
-            _originalFaithColor = _faithFillImage.color;
+            Image[] images = faithSlider.GetComponentsInChildren<Image>(true); ;
+            foreach (var img in images)
+            {
+                if (img.gameObject.name == "Background")
+                {
+                    _faithBGImage = img;
+                    _originalBGColor = img.color;
+                    break;
+                }
+            }
         }
-
-        currentFaith = MaxFaith; // 시작 시 풀 정신력
-        baseSpeed = _agent.speed;
 
         if (hpSlider != null) hpSlider.value = 1f;
         if (faithSlider != null) faithSlider.value = 1f;
+
+        UpdateStatusUI();
     }
 
     void Update()
@@ -112,7 +123,7 @@ public class UnitStat : MonoBehaviour
         }
         else
         {
-            AttackRange = 1.2f; // 무기 없을 때 기본 사거리 (근접)
+            AttackRange = 2f; // 무기 없을 때 기본 사거리 (근접)
             AttackSpeed = 1.0f; // 무기 없을 때 기본 공격 속도
         }
 
@@ -131,6 +142,15 @@ public class UnitStat : MonoBehaviour
         if (_faithRegenTimer >= 3f) // 3초에 1회 회복 (이미지 기준)
         {
             _faithRegenTimer = 0f;
+
+            float finalRegen = FaithRegenAmount;
+
+            GameObject baseObj = GameObject.FindGameObjectWithTag("Base");
+            if (baseObj != null && Vector2.Distance(transform.position, baseObj.transform.position) < 3f)
+            {
+                finalRegen *= 3f;
+            }
+
             RecoverFaith(FaithRegenAmount); // 내 신앙(MTL_SPEED)만큼 회복
 
             // 주변 아군 전파 회복
@@ -145,8 +165,19 @@ public class UnitStat : MonoBehaviour
 
     public void RecoverFaith(float amount)
     {
+        if (currentFaith >= MaxFaith) return;
+
         currentFaith = Mathf.Min(currentFaith + amount, MaxFaith);
-        if (isPanicking && currentFaith > 0) StopPanic();
+
+        if (isPanicking)
+        {
+            if (currentFaith >= MaxFaith * 0.5f)
+            {
+                StopPanic();
+            }
+        }
+
+        UpdateStatusUI();
     }
 
     // 신앙 감소 로직
@@ -162,11 +193,11 @@ public class UnitStat : MonoBehaviour
 
     private void ReduceFaith(float amount)
     {
-        if (isPanicking) return; // 이미 패닉이면 추가 감소 무시
+        if (isPanicking) return; // 이미 패닉이면 무시
 
         currentFaith = Mathf.Max(currentFaith - amount, 0);
 
-        // 신앙 0 달성 시 패닉 상태 돌입
+        // 바로 이 부분에서 호출됩니다!
         if (currentFaith <= 0)
         {
             StartPanic();
@@ -176,6 +207,7 @@ public class UnitStat : MonoBehaviour
     // 패닉 상태 시작
     private void StartPanic()
     {
+        if (isPanicking) return;
         isPanicking = true;
         //Debug.Log($"{gameObject.name} 패닉 상태!");
 
@@ -208,7 +240,7 @@ public class UnitStat : MonoBehaviour
             StopCoroutine(_blinkCoroutine);
             _blinkCoroutine = null;
         }
-        if (_faithFillImage != null) _faithFillImage.color = _originalFaithColor;
+        if (_faithBGImage != null) _faithBGImage.color = _originalBGColor;
 
         // 공격 가능 상태 복구
         if (_unitCombat != null) _unitCombat.enabled = true;
@@ -228,13 +260,13 @@ public class UnitStat : MonoBehaviour
     {
         while (isPanicking)
         {
-            if (_faithFillImage != null)
+            if (_faithBGImage != null)
             {
-                // 보라색(패닉색)과 원래 색상을 0.3초 간격으로 교체
-                _faithFillImage.color = (_faithFillImage.color == _originalFaithColor) ? panicColor : _originalFaithColor;
+                _faithBGImage.color = (_faithBGImage.color == _originalBGColor) ? panicColor : _originalBGColor;
             }
             yield return new WaitForSeconds(0.3f);
         }
+        if (_faithBGImage != null) _faithBGImage.color = _originalBGColor;
     }
 
     /// <summary>
@@ -308,7 +340,7 @@ public class UnitStat : MonoBehaviour
     {
         // 현재 대미지 감소 로직
         // Raw 대미지 값 - Defense(방어력) 값
-        float finalDamage = Mathf.Max(rawDamage - Defense, 1f);
+        float finalDamage = Mathf.Max(rawDamage - Defense, 0.1f);
         CurrentHp -= finalDamage;
         //Debug.Log($"유닛 남은 체력: {CurrentHp}");
         

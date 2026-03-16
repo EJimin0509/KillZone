@@ -14,7 +14,7 @@ public class UnitCombat : MonoBehaviour
     private NavMeshAgent _agent; // 유닛이 NaveMesh 사용 중이므로 NaveMesh 참조
     private float _lastAttackTime; // 공격 속도
     private float _scanTimer; // 스캔 탐색용 타이머
-    private NavMeshObstacle _obstacle; // 장애물 판정용
+    //private NavMeshObstacle _obstacle; // 장애물 판정용
 
     public bool IsForceMoving = false; // 현재 유닛이 강제 이동 명령을 받았는지 확인
     public GameObject CurrentTarget; // 현재 공격중인 타겟을 담을 변수
@@ -28,19 +28,23 @@ public class UnitCombat : MonoBehaviour
     {
         _myStat = GetComponent<UnitStat>(); // UnitStat 컴포넌트 참조
         _agent = GetComponent<NavMeshAgent>(); // NavMeshAgent 컴포넌트 참조
-        _obstacle = GetComponent<NavMeshObstacle>();
+        //_obstacle = GetComponent<NavMeshObstacle>();
 
-        if (_obstacle != null)
-        {
-            _obstacle.enabled = true;
-            _obstacle.carving = false;
-        }
+        //if (_obstacle != null)
+        //{
+        //    _obstacle.enabled = true;
+        //    _obstacle.carving = false;
+        //}
 
         if (_agent != null)
         {
             _agent.updateRotation = false; // 2D이므로 회전 끄기
             _agent.updateUpAxis = false;
             _agent.enabled = true;
+
+            _agent.avoidancePriority = 50;
+            _agent.radius = 0.15f;
+            _agent.stoppingDistance = 0.1f;
         }
     }
 
@@ -59,11 +63,17 @@ public class UnitCombat : MonoBehaviour
         }
 
         // 1. 스캔 타이머 가동
-        if (_scanTimer > 0)  _scanTimer -= Time.deltaTime;
-
-        if (CurrentTarget == null || IsForceMoving)
+        if (_scanTimer > 0)
         {
-            if (_obstacle != null) _obstacle.carving = false;
+            if (CurrentTarget == null && !IsForceMoving)
+            {
+                SearchTarget();
+            }
+            _scanTimer = scanInterval;
+        }
+        else
+        {
+            _scanTimer -= Time.deltaTime;
         }
 
         // 2. 타겟 상태 업데이트 및 추적 로직
@@ -77,26 +87,34 @@ public class UnitCombat : MonoBehaviour
     /// </summary>
     private void HandleCombatAI()
     {
-        if (IsForceMoving) return;
+        if (IsForceMoving)
+        {
+            if (_agent.isActiveAndEnabled) _agent.avoidancePriority = 50; // 이동 중엔 일반 순위
+            return;
+        }
 
         // 강제 이동 중이거나 타겟이 없으면 자동 탐색
         if (CurrentTarget != null)
         {
-            float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
             EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
 
+            if (targetEnemy == null || targetEnemy.CurrentHp <= 0)
+            {
+                CurrentTarget = null;
+                return;
+            }
+            
+            float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
+
             // 1. 공격 사거리 안인 경우
-            if (dist <= _myStat.AttackPower) // 기존 코드에서 AttackPower를 사거리 변수로 쓰고 계신 것 같습니다.
+            if (dist <= _myStat.AttackRange + 0.8f) // 기존 코드에서 AttackPower를 사거리 변수로 쓰고 계신 것 같습니다.
             {
                 if (_agent.isActiveAndEnabled)
                 {
                     _agent.isStopped = true;
                     _agent.velocity = Vector3.zero;
+                    _agent.avoidancePriority = 0;
                 }
-
-                // [핵심 수정] 에이전트를 끄지 않고 Carving만 켭니다.
-                // 이렇게 해야 나를 추격하는 적이 나를 "길이 막힌 곳"이 아닌 "목적지"로 인식합니다.
-                if (_obstacle != null) _obstacle.carving = true;
 
                 HandleFlip(CurrentTarget.transform.position);
                 TryAttack(targetEnemy);
@@ -104,15 +122,18 @@ public class UnitCombat : MonoBehaviour
             // 2. 사거리 밖인 경우 (추격)
             else
             {
-                // [핵심 수정] 추격 시작 시 장애물 판정을 즉시 제거합니다.
-                if (_obstacle != null) _obstacle.carving = false;
-
                 if (_agent.isActiveAndEnabled)
                 {
                     _agent.isStopped = false;
+                    _agent.avoidancePriority = 50; // 추격(이동) 중엔 우선순위 낮춤
                     _agent.SetDestination(CurrentTarget.transform.position);
                 }
             }
+        }
+        else
+        {
+            // 타겟이 없으면 우선순위 기본값으로
+            if (_agent.isActiveAndEnabled) _agent.avoidancePriority = 50;
         }
     }
 
@@ -120,11 +141,11 @@ public class UnitCombat : MonoBehaviour
    /// 에이전트 재활성화를 위한 코루틴
    /// </summary>
    /// <returns></returns>
-    private IEnumerator EnableAgentNextFrame()
-    {
-        yield return null;
-        _agent.enabled = true;
-    }
+    //private IEnumerator EnableAgentNextFrame()
+    //{
+    //    yield return null;
+    //    _agent.enabled = true;
+    //}
 
     /// <summary>
     /// 전투가 종료되면 상태를 초기화하는 메서드
@@ -141,7 +162,7 @@ public class UnitCombat : MonoBehaviour
     private void SearchTarget()
     {
         // enemyLayer에 속한 오브젝트 찾기
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _myStat.AttackRange, enemyLayer);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, _myStat.AttackRange + 2f, enemyLayer);
 
         float closestDist = float.MaxValue;
         GameObject closestEnemy = null;
@@ -204,12 +225,10 @@ public class UnitCombat : MonoBehaviour
         CurrentTarget = target;
         IsForceMoving = isMoveCommand;
 
-        if (_obstacle != null) _obstacle.carving = false;
-
-        // 에이전트 가동 상태 체크
         if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
         {
             _agent.isStopped = false;
+            _agent.avoidancePriority = 50; // 수동 명령 시에도 우선순위 초기화
         }
     }
 
