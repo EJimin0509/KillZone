@@ -32,8 +32,8 @@ public class UnitCombat : MonoBehaviour
 
         if (_obstacle != null)
         {
-            _obstacle.carving = true; // 실시간 경로 재계산 활성화
-            _obstacle.enabled = false; // 기본은 비활성화
+            _obstacle.enabled = true;
+            _obstacle.carving = false;
         }
 
         if (_agent != null)
@@ -61,6 +61,11 @@ public class UnitCombat : MonoBehaviour
         // 1. 스캔 타이머 가동
         if (_scanTimer > 0)  _scanTimer -= Time.deltaTime;
 
+        if (CurrentTarget == null || IsForceMoving)
+        {
+            if (_obstacle != null) _obstacle.carving = false;
+        }
+
         // 2. 타겟 상태 업데이트 및 추적 로직
         HandleCombatAI();
     }
@@ -72,66 +77,40 @@ public class UnitCombat : MonoBehaviour
     /// </summary>
     private void HandleCombatAI()
     {
-        // 에이전트가 활성화되어 있고 NavMesh 위에 있을 때만 제어
-        bool canControlAgent = _agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh;
+        if (IsForceMoving) return;
 
         // 강제 이동 중이거나 타겟이 없으면 자동 탐색
-        if (CurrentTarget == null)
+        if (CurrentTarget != null)
         {
-            if (_scanTimer <= 0)              // 스캔 가능 할 때
+            float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
+            EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
+
+            // 1. 공격 사거리 안인 경우
+            if (dist <= _myStat.AttackPower) // 기존 코드에서 AttackPower를 사거리 변수로 쓰고 계신 것 같습니다.
             {
-                SearchTarget();               // 적을 탐색하고
-                _scanTimer = scanInterval;    // 스캔 타이머를 초기화
-            }
-            return;
-        }
-
-        // 타겟의 생존 여부 확인
-        EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
-        if (targetEnemy == null || targetEnemy.CurrentHp <= 0) // 타겟이 없거나 사망
-        {
-            ResetCombat(); // 전투 종료 후 상태 초기화
-            // 타겟이 죽으면 멈추지 않고 다시 탐색 대기 상태로 전환
-            if (canControlAgent && !IsForceMoving) _agent.isStopped = false;
-            return;        // 리턴
-        }
-
-        // 타겟과 유닛 사이의 거리 Vector2
-        float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
-
-        // 3. 사거리 및 추적 로직 (여유값 0.2f)
-        if (dist <= _myStat.AttackRange + 0.2f)
-        {
-            // 사거리 안이면 정지
-            if (!IsForceMoving)
-            {
-                if (_agent.enabled)
+                if (_agent.isActiveAndEnabled)
                 {
-                    _agent.enabled = false; // 에이전트 끄기
-                    if (_obstacle != null) _obstacle.enabled = true; // 장애물 켜기
+                    _agent.isStopped = true;
+                    _agent.velocity = Vector3.zero;
                 }
 
-                // 공격 시 적을 바라보게 함
+                // [핵심 수정] 에이전트를 끄지 않고 Carving만 켭니다.
+                // 이렇게 해야 나를 추격하는 적이 나를 "길이 막힌 곳"이 아닌 "목적지"로 인식합니다.
+                if (_obstacle != null) _obstacle.carving = true;
+
                 HandleFlip(CurrentTarget.transform.position);
-                TryAttack(targetEnemy); // 공격
+                TryAttack(targetEnemy);
             }
-        }
-        else
-        {
-            // 사거리 밖이고 강제 이동 중이 아니라면 추격
-            if (!IsForceMoving)
+            // 2. 사거리 밖인 경우 (추격)
+            else
             {
-                if (_obstacle != null && _obstacle.enabled)
-                {
-                    _obstacle.enabled = false;
-                    StartCoroutine(EnableAgentNextFrame()); // 한 프레임 뒤 Agent 활성화
-                    return;
-                }
+                // [핵심 수정] 추격 시작 시 장애물 판정을 즉시 제거합니다.
+                if (_obstacle != null) _obstacle.carving = false;
 
                 if (_agent.isActiveAndEnabled)
                 {
                     _agent.isStopped = false;
-                    _agent.SetDestination(CurrentTarget.transform.position); // 새로운 경로 설정
+                    _agent.SetDestination(CurrentTarget.transform.position);
                 }
             }
         }
@@ -224,6 +203,8 @@ public class UnitCombat : MonoBehaviour
     {
         CurrentTarget = target;
         IsForceMoving = isMoveCommand;
+
+        if (_obstacle != null) _obstacle.carving = false;
 
         // 에이전트 가동 상태 체크
         if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)

@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.AI; // NavMesh API 사용을 위해 추가
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 /// <summary>
 /// A* 알고리즘(NavMesh 데이터 활용)을 통해 경로 찾기 및 전투를 담당하는 적 AI
@@ -18,6 +19,9 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private Transform visualChild; // 자식 오브젝트인 Visual을 드래그 앤 드롭
     [SerializeField] private float knockbackDistance = 0.3f; // 밀려나는 거리
     [SerializeField] private float knockbackDuration = 0.2f; // 복귀까지 걸리는 시간
+
+    [Header("UI Reference")]
+    [SerializeField] private Slider hpSlider;
 
     private float baseSpeed; // 기본 이동 속도
 
@@ -161,10 +165,10 @@ public class EnemyAI : MonoBehaviour
     // 공격 상태일 때 Agent를 끄고 Obstacle을 켜서 장애물로 변신 (요청 사항 2, 3번)
     private void StopAndAttack()
     {
-        if (_agent.enabled)
+        if (_agent.isActiveAndEnabled)
         {
-            _agent.enabled = false; // 이동 중지
-            if (_obstacle != null) _obstacle.enabled = true; // 장애물 판정 활성화
+            _agent.isStopped = true; // 이동 중지
+            if (_obstacle != null) _obstacle.carving = true; // 장애물 판정 활성화
         }
 
         HandleSpriteFlip(_currentTarget.transform.position);
@@ -183,6 +187,8 @@ public class EnemyAI : MonoBehaviour
 
         if (_agent.isActiveAndEnabled)
         {
+            if (_obstacle != null) _obstacle.carving = false;
+
             _agent.isStopped = false;
             //_agent.speed = data.moveSpeed;
 
@@ -220,7 +226,8 @@ public class EnemyAI : MonoBehaviour
     {
         float finalDamage = Mathf.Max(damage - data.defense, 1f);
         CurrentHp -= finalDamage;
-        Debug.Log($"적 체력: {CurrentHp}");
+        //Debug.Log($"적 체력: {CurrentHp}");
+        UpdateHealthUI();
 
         // 피격 시 즉시 공격자를 돌아봄
         HandleSpriteFlip(attackerPos);
@@ -368,6 +375,14 @@ public class EnemyAI : MonoBehaviour
             {
                 _currentTarget = null;
             }
+        }
+    }
+
+    public void UpdateHealthUI()
+    {
+        if (hpSlider != null)
+        {
+            hpSlider.value = CurrentHp / data.maxHp;
         }
     }
 }

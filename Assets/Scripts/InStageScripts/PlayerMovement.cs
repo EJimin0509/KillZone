@@ -15,10 +15,6 @@ public class PlayerMovement : MonoBehaviour
     private bool _isLeftClickPending = false; // 클릭 신호를 담을 변수
     private UnitCombat _unitCombat; // 컴포넌트 참조용 추가
 
-    // UI 및 이팩트
-    //[Header("Settings")]
-    //[SerializeField] private GameObject selectionVisual; // 선택 시 표시될 원형 UI 등
-
     // 추가된 통로 1: CommandManager가 현재 유닛의 선택 여부를 확인할 수 있도록 열어둠
     public bool IsSelected => _isSelected;
 

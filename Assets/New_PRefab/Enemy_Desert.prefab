@@ -122,11 +122,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22b048e46b35e9b4ca7484f52900f454, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
-  data: {fileID: 11400000, guid: 581110dcf6fe5204daddb00cabae1015, type: 2}
+  data: {fileID: 11400000, guid: 7f12b96ef28df6346b07ac8a7b25a1b6, type: 2}
   enemyArrowPrefab: {fileID: 2758677093137963018, guid: 23241b582f38d3448be8ac4b92ca2c19, type: 3}
   visualChild: {fileID: 2525314359236126091}
   knockbackDistance: 0.3
   knockbackDuration: 0.2
+  slowMultiplier: 0.5
   CurrentHp: 0
 --- !u!208 &-2210886608880798137
 NavMeshObstacle:
@@ -243,16 +244,16 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -1696879121
+  m_SortingLayerID: -519001123
   m_SortingLayer: 2
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7935424080704718484, guid: 9fbb0b6f726861648b373f5e75f6cc79, type: 3}
+  m_Sprite: {fileID: 7935424080704718484, guid: 17e4fee768c03774a9cd3e2f6c23cb6f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 0.9843137}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.22, y: 1.27}
+  m_Size: {x: 1.33, y: 1.44}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

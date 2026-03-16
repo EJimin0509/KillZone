@@ -16,7 +16,8 @@ MonoBehaviour:
   equippedChest: {fileID: 0}
   equippedWeapon: {fileID: 11400000, guid: 66baaa75d635f2c44ab1123e8ce33717, type: 2}
   unitName: test
-  hp: 10
+  unitSprite: {fileID: 0}
+  hp: 1
   melee: 1
   range: 1
   repair: 1

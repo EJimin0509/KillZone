@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
+public class EnemySpawnInfo
+{
+    public GameObject enemyPrefab; // 적 프리팹
+    [Range(1, 100)]
+    public int spawnWeight = 10;   // 등장 확률 가중치
+}
+
+[System.Serializable]
 public class WaveData
 {
     public string waveName;
-    public GameObject enemyPrefab; // 소환할 적 프리팹
+    public List<EnemySpawnInfo> enemyPool; // 소환할 적 프리팹
     public int enemyCount;         // 이 웨이브에 나올 총 적 수
     public float spawnInterval;    // 적 생성 간격
 }
@@ -52,7 +60,11 @@ public class EnemySpawner : MonoBehaviour
 
         for (int i = 0; i < currentWave.enemyCount; i++)
         {
-            SpawnEnemy(currentWave.enemyPrefab);
+            GameObject selectedPrefab = GetRandomEnemyPrefab(currentWave.enemyPool);
+            if (selectedPrefab != null)
+            {
+                SpawnEnemy(selectedPrefab);
+            }
             yield return new WaitForSeconds(currentWave.spawnInterval);
         }
 
@@ -70,6 +82,25 @@ public class EnemySpawner : MonoBehaviour
         {
             Debug.Log("모든 웨이브 클리어!");
         }
+    }
+
+    private GameObject GetRandomEnemyPrefab(List<EnemySpawnInfo> pool)
+    {
+        if (pool == null || pool.Count == 0) return null;
+
+        int totalWeight = 0;
+        foreach (var info in pool) totalWeight += info.spawnWeight;
+
+        int roll = Random.Range(0, totalWeight);
+        int cumulativeWeight = 0;
+
+        foreach (var info in pool)
+        {
+            cumulativeWeight += info.spawnWeight;
+            if (roll < cumulativeWeight) return info.enemyPrefab;
+        }
+
+        return pool[0].enemyPrefab;
     }
 
     private void SpawnEnemy(GameObject prefab)

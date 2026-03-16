@@ -1,4 +1,7 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 public class DefenseBase : MonoBehaviour
 {
@@ -6,17 +9,20 @@ public class DefenseBase : MonoBehaviour
     public static DefenseBase Current { get; private set; }
 
     [Header("Base Stats")]
-    public float maxHp = 5000f; // 최대 체력
+    public float maxHp = 300f; // 최대 체력
     public float currentHp;     // 현재 체력
+    public TextMeshProUGUI HPText; // 체력 표시 텍스트
+
+    [Header("UI Connection")]
+    public Slider hpSlider;
 
     private void OnEnable()
     {
         // 구조물이 생성되거나 활성화될 때 자신을 등록
         Current = this;
 
-        // 업그레이드 요소를 여기에 반영해야 함
-
         currentHp = maxHp;
+        UpdateBaseUI();
     }
 
     private void OnDisable()
@@ -32,9 +38,21 @@ public class DefenseBase : MonoBehaviour
     public void TakeDamage(float damage)
     {
         currentHp -= damage;
-        Debug.Log($"구조물 피격! 남은 HP: {currentHp}");
+        //Debug.Log($"구조물 피격! 남은 HP: {currentHp}");
+        UpdateBaseUI();
 
         if (currentHp <= 0) Die();
+    }
+
+    private void UpdateBaseUI()
+    {
+        if (hpSlider != null)
+        {
+            // 슬라이더의 value를 0~1 사이 비율로 설정
+            hpSlider.value = currentHp / maxHp;
+        }
+
+        HPText.text = $"{currentHp} / {maxHp}";
     }
 
     private void Die()
