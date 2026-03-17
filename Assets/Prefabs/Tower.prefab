@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2249994693095464850}
   - component: {fileID: 6116123905628906981}
   - component: {fileID: 2384248886428228397}
-  m_Layer: 11
+  m_Layer: 13
   m_Name: Tower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,8 +168,11 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64
-  breakdownEffect: {fileID: 0}
-  areaSize: {x: 0.1, y: 0.1}
-  centerThreshold: 1
+  garrisonOffset: {x: 0, y: 0.8, z: -10}
+  brokenSprite: {fileID: 0}
+  _currentHp: 0
   customCooldown: 2
-  useUnitAttackSpeed: 1
+  projectileSpeed: 12
+  firePoint: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  baseDamage: 15

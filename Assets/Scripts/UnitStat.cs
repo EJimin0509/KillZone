@@ -64,19 +64,24 @@ public class UnitStat : MonoBehaviour
         _agent = GetComponent<NavMeshAgent>();
         if (_agent != null) baseSpeed = _agent.speed;
 
-        // 생성기로 생성되지 않았을 경우를 대비해 딕셔너리 초기화
+        // 1. 딕셔너리 및 기본 구조 초기화
         foreach (StatBonusType type in System.Enum.GetValues(typeof(StatBonusType)))
         {
             if (!baseLevels.ContainsKey(type)) baseLevels[type] = 1;
         }
-        
-        RefreshStats(); // 스탯 초기화
 
-        currentFaith = MaxFaith; // 시작 시 풀 정신력
+        // 2. 스탯 계산 (여기서 MaxFaith가 결정됨)
+        RefreshStats();
 
+        // 3. [수정] 현재 수치들을 최대치로 초기화 (RefreshStats 이후에 수행)
+        CurrentHp = MaxHp;
+        currentFaith = MaxFaith;
+
+        // 4. UI 및 이미지 참조
         if (faithSlider != null)
         {
-            Image[] images = faithSlider.GetComponentsInChildren<Image>(true); ;
+            // 캔버스가 비활성화 상태여도 찾을 수 있게 true 인자 유지
+            Image[] images = faithSlider.GetComponentsInChildren<Image>(true);
             foreach (var img in images)
             {
                 if (img.gameObject.name == "Background")
@@ -88,9 +93,7 @@ public class UnitStat : MonoBehaviour
             }
         }
 
-        if (hpSlider != null) hpSlider.value = 1f;
-        if (faithSlider != null) faithSlider.value = 1f;
-
+        // 5. 최종 UI 갱신
         UpdateStatusUI();
     }
 
@@ -133,6 +136,7 @@ public class UnitStat : MonoBehaviour
         Defense = helmDef + chestDef;
 
         if (CurrentHp <= 0) CurrentHp = MaxHp;
+        if (currentFaith <= 0) currentFaith = MaxFaith;
     }
 
 
@@ -183,12 +187,12 @@ public class UnitStat : MonoBehaviour
     // 신앙 감소 로직
     public void OnHit() // 공격 받을 때 호출
     {
-        ReduceFaith(1f);
+        ReduceFaith(5f);
     }
 
     public void OnAllyDeath() // 주변 아군 사망 시 호출
     {
-        ReduceFaith(10f);
+        ReduceFaith(20f);
     }
 
     private void ReduceFaith(float amount)
@@ -202,6 +206,8 @@ public class UnitStat : MonoBehaviour
         {
             StartPanic();
         }
+
+        UpdateStatusUI();
     }
 
     // 패닉 상태 시작
@@ -423,5 +429,25 @@ public class UnitStat : MonoBehaviour
         CurrentHp = Mathf.Min(CurrentHp + amount, MaxHp);
         UpdateStatusUI(); // 이전에 만든 UI 갱신 로직
     }
-    private void Die() => gameObject.SetActive(false);
+    private void Die()
+    {
+        // [추가] 주변 아군들에게 정신적 충격 전달
+        Collider2D[] nearbyAllies = Physics2D.OverlapCircleAll(transform.position, 5f);
+        foreach (var col in nearbyAllies)
+        {
+            // 나 자신이 아니고, 태그가 Unit인 아군 유닛만 탐색
+            if (col.gameObject != gameObject && col.CompareTag("Unit"))
+            {
+                UnitStat allyStat = col.GetComponent<UnitStat>();
+                if (allyStat != null)
+                {
+                    // 주변 아군의 OnAllyDeath 호출
+                    allyStat.OnAllyDeath();
+                }
+            }
+        }
+
+        //Debug.Log($"{gameObject.name} 사망. 주변 아군 의지 감소.");
+        gameObject.SetActive(false);
+    }
 }

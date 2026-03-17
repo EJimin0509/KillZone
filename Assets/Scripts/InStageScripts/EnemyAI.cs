@@ -329,7 +329,7 @@ public class EnemyAI : MonoBehaviour
                 // 원거리 공격 타겟 태그 결정 (Base, Unit, Structure, Tower 모두 대응)
                 string tagToHit = "Unit"; // 기본값
                 if (_currentTarget.CompareTag("Base")) tagToHit = "Base";
-                else if (_currentTarget.CompareTag("Structure") || _currentTarget.CompareTag("Tower")) tagToHit = "Structure";
+                //else if (_currentTarget.CompareTag("Structure") || _currentTarget.CompareTag("Tower")) tagToHit = "Structure";
 
                 // 적 원거리 공격 발사
                 GameObject arrowObj = SimpleObjectPool.Instance.SpawnFromPool(enemyArrowPrefab, transform.position, Quaternion.identity);
@@ -346,7 +346,7 @@ public class EnemyAI : MonoBehaviour
                 if (_currentTarget.TryGetComponent(out IDamageable damageable))
                 {
                     damageable.TakeDamage(data.attackPower, transform.position);
-                    Debug.Log($"<color=red>[근접 공격]</color> {_currentTarget.name}에게 데미지를 입혔습니다.");
+                    //Debug.Log($"<color=red>[근접 공격]</color> {_currentTarget.name}에게 데미지를 입혔습니다.");
                 }
                 // 만약 인터페이스가 없는 예외 케이스(직접 참조)
                 else if (_currentTarget.CompareTag("Base"))
@@ -386,11 +386,11 @@ public class EnemyAI : MonoBehaviour
                 currentPriority = 3;
             }
             // 순위 2: Structure 또는 Tower (태그 + 컴포넌트 교차 체크)
-            else if (hit.CompareTag("Structure") || hit.CompareTag("Tower") || hit.GetComponent<MannedStructure>() != null)
-            {
-                currentPriority = 2;
-                // Debug.Log($"<color=cyan>[감지]</color> 구조물 발견: {hit.name}");
-            }
+            //else if (hit.CompareTag("Structure") || hit.CompareTag("Tower") || hit.GetComponent<MannedStructure>() != null)
+            //{
+            //    currentPriority = 2;
+            //    // Debug.Log($"<color=cyan>[감지]</color> 구조물 발견: {hit.name}");
+            //}
             // 순위 3: Unit
             else if (hit.CompareTag("Unit"))
             {

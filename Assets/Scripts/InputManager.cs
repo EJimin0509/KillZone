@@ -6,6 +6,7 @@ using UnityEngine;
 public class InputManager : MonoBehaviour
 {
     private static InputManager _instance; // ΩÃ±€≈Ê ¿ŒΩ∫≈œΩ∫
+    private static bool _isQuitting = false;
 
     /// <summary>
     /// ΩÃ±€≈Ê ∆–≈œ
@@ -14,6 +15,8 @@ public class InputManager : MonoBehaviour
     {
         get
         {
+            if (_isQuitting) return null;
+
             if (_instance == null)
             {
                 // æ¿ø° æ¯¿∏∏È ªı∑Œ ª˝º∫
@@ -57,5 +60,19 @@ public class InputManager : MonoBehaviour
     private void OnDisable()
     {
         _inputActions.Disable();
+    }
+
+    private void OnApplicationQuit()
+    {
+        _isQuitting = true;
+    }
+
+    private void OnDestroy()
+    {
+        // ΩÃ±€≈Ê ¬¸¡∂ «ÿ¡¶
+        if (_instance == this)
+        {
+            _instance = null;
+        }
     }
 }

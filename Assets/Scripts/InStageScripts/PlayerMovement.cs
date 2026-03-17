@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI; // NavMesh 이용
 using UnityEngine.EventSystems; // UI 클릭 방지
+using UnityEngine.InputSystem;
 
 // NavMeshAgent를 사용한 플레이어(유닛) 길찾기 알고리즘
 // 1. 플레이어 좌클릭(선택)
@@ -44,7 +45,7 @@ public class PlayerMovement : MonoBehaviour
             InputManager.Instance.InputActions.Player.LeftClick.performed += _ => _isLeftClickPending = true; // 좌클릭 신호
             InputManager.Instance.InputActions.Player.RightClick.performed += ctx => // 마우스 우클릭
             {
-                if(_isSelected) // 선택 될 상태일 때만 이동을 시도
+                if(_isSelected && !Keyboard.current.eKey.isPressed) // 선택 될 상태일 때만 이동을 시도
                 { 
                     TryMove(); 
                 }
@@ -52,7 +53,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            Debug.LogError("InputManager를 찾을 수 없습니다! 씬에 InputManager 오브젝트가 있는지 확인하세요.");
+            //Debug.LogError("InputManager를 찾을 수 없습니다! 씬에 InputManager 오브젝트가 있는지 확인하세요.");
         }
     }
 
@@ -107,6 +108,9 @@ public class PlayerMovement : MonoBehaviour
     {
         if (_agent != null && _agent.isActiveAndEnabled)
         {
+            UnitMedic medic = GetComponent<UnitMedic>();
+            if (medic != null) medic.StopHeal();
+
             _unitCombat.SetManualCommand(null, true);
             _agent.isStopped = false;
             _agent.SetDestination(dest);
@@ -138,13 +142,13 @@ public class PlayerMovement : MonoBehaviour
             if (hit.collider.gameObject == gameObject)
             {
                 SetSelection(true);
-                Debug.Log("유닛 본인 선택됨");
+                //Debug.Log("유닛 본인 선택됨");
             }
             else
             {
                 // 그 대상이 '다른 오브젝트'라면 선택 해제
                 SetSelection(false);
-                Debug.Log("다른 대상 클릭으로 인한 해제");
+                //Debug.Log("다른 대상 클릭으로 인한 해제");
             }
         }
         // 아예 빈 공간(바닥)을 클릭했을 경우
@@ -153,7 +157,7 @@ public class PlayerMovement : MonoBehaviour
             // 디펜스 게임 특성상 이동을 위해 바닥을 찍는 경우가 많으므로, 
             // 좌클릭으로 빈 바닥을 찍었을 때만 해제하도록 합니다.
             SetSelection(false);
-            Debug.Log("빈 공간 클릭으로 인한 해제");
+            //Debug.Log("빈 공간 클릭으로 인한 해제");
         }
     }
 
@@ -175,7 +179,7 @@ public class PlayerMovement : MonoBehaviour
         // 에이전트가 활성화 상태이고 NavMesh 위에 있을 때만 이동 명령 수행
         if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh)
         {
-            Debug.LogWarning($"{gameObject.name}: NavMeshAgent가 준비되지 않아 이동할 수 없습니다.");
+            //Debug.LogWarning($"{gameObject.name}: NavMeshAgent가 준비되지 않아 이동할 수 없습니다.");
             return;
         }
 
