@@ -24,9 +24,14 @@ public class GameManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             _savePath = Path.Combine(Application.persistentDataPath, "saveData.json");
-            LoadGame();
+            
         }
         else Destroy(gameObject);
+    }
+
+    private void Start()
+    {
+        LoadGame();
     }
 
     public void SaveGame()
@@ -56,29 +61,38 @@ public class GameManager : MonoBehaviour
             currentStage = data.currentStage;
             stageUnlocked = data.stageUnlocked;
 
-            // 리스트 참조 유지를 위해 새로 갈아끼우지 말고 내용을 채움
+            // 리스트 데이터 복사
             ownedUnits.Clear();
             if (data.ownedUnits != null) ownedUnits.AddRange(data.ownedUnits);
 
             ownedEquips.Clear();
             if (data.ownedEquips != null) ownedEquips.AddRange(data.ownedEquips);
 
-            Debug.Log($"데이터 불러오기 성공! 유닛: {ownedUnits.Count}개, 장비: {ownedEquips.Count}개");
+            Debug.Log($"[1] GameManager 로드 완료: 유닛 {ownedUnits.Count}개");
 
+            // [핵심] InventoryManager가 존재한다면 즉시 SO 복구 실행
             if (InventoryManager.Instance != null)
             {
-                // 앞서 만든 동기화 함수 호출 (데이터가 들어왔으니 SO로 변환)
                 InventoryManager.Instance.RefreshInventoryFromSaveData();
             }
+            else
+            {
+                Debug.LogError("InventoryManager Instance를 찾을 수 없습니다!");
+            }
 
-            // [추가] 현재 씬에 UI 매니저가 있다면 리스트 갱신 명령
-            var unitUI = FindAnyObjectByType<UnitInventorySceneManager>();
-            if (unitUI != null) unitUI.RefreshUnitList();
-
-            var equipUI = FindAnyObjectByType<EquipmentInventoryUI>();
-            if (equipUI != null) equipUI.RefreshList();
+            // [핵심] UI 갱신 (씬에 UI가 있을 때만)
+            RefreshAllUI();
         }
-    
+    }
+
+    // UI를 찾는 로직은 별도로 빼서 관리하면 편합니다.
+    private void RefreshAllUI()
+    {
+        var unitUI = FindAnyObjectByType<UnitInventorySceneManager>();
+        if (unitUI != null) unitUI.RefreshUnitList();
+
+        var equipUI = FindAnyObjectByType<EquipmentInventoryUI>();
+        if (equipUI != null) equipUI.RefreshList();
     }
 
     private void OnApplicationQuit() => SaveGame();
@@ -90,6 +104,7 @@ public class GameManager : MonoBehaviour
         UnitSaveData newUnit = new UnitSaveData
         {
             unitName = unit.unitName,
+            spriteKey = unit.spriteKey,
             hp = unit.hp,
             melee = unit.melee,
             range = unit.range,
@@ -107,6 +122,7 @@ public class GameManager : MonoBehaviour
         EquipSaveData newEquip = new EquipSaveData
         {
             equipName = equip.equipName,
+            spriteKey = equip.spriteKey,
             type = equip.type,
             attackRange = equip.attackRange,
             defense = equip.defense,

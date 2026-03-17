@@ -19,6 +19,7 @@ public class EquipmentData : ScriptableObject
     public string equipName;
     public EquipmentType type;
     public Sprite equipSprite;
+    public string spriteKey;
 
     [Header("Combat Stats")]
     public float attackSpeedBonus = 0f; // 기본 1에서 가감

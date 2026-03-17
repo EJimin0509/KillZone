@@ -11,6 +11,7 @@ public class UnitData : ScriptableObject
 
     [Header("외형 정보")]
     public string unitName;
+    public string spriteKey;
     public Sprite unitSprite;
 
     [Header("Base Stat Levels (0-10)")]

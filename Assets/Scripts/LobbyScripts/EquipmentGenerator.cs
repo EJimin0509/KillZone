@@ -72,10 +72,22 @@ public class EquipmentGenerator : MonoBehaviour
 
         switch (randomType)
         {
-            case EquipmentType.Helm: newItem.equipSprite = helmSprite; break;
-            case EquipmentType.Chest: newItem.equipSprite = chestSprite; break;
-            case EquipmentType.Melee: newItem.equipSprite = meleeSprite; break;
-            case EquipmentType.Bow: newItem.equipSprite = bowSprite; break;
+            case EquipmentType.Helm:
+                newItem.equipSprite = helmSprite;
+                newItem.spriteKey = helmSprite.name; // [추가] 이름 저장
+                break;
+            case EquipmentType.Chest:
+                newItem.equipSprite = chestSprite;
+                newItem.spriteKey = chestSprite.name; // [추가]
+                break;
+            case EquipmentType.Melee:
+                newItem.equipSprite = meleeSprite;
+                newItem.spriteKey = meleeSprite.name; // [추가]
+                break;
+            case EquipmentType.Bow:
+                newItem.equipSprite = bowSprite;
+                newItem.spriteKey = bowSprite.name; // [추가]
+                break;
         }
 
         // 부위별 기본 수치 설정 (무기는 사거리, 방어구는 방어력)

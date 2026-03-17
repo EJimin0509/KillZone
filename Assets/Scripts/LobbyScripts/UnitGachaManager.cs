@@ -31,7 +31,9 @@ public class UnitGachaManager : MonoBehaviour
         if (appearanceDB != null)
         {
             _lastGeneratedStat.unitName = appearanceDB.GetRandomName();
-            _lastGeneratedStat.unitSprite = appearanceDB.GetRandomSprite();
+            Sprite selectedSprite = appearanceDB.GetRandomSprite();
+            _lastGeneratedStat.unitSprite = selectedSprite;
+            _lastGeneratedStat.spriteKey = selectedSprite.name;
         }
 
         if (InventoryManager.Instance == null)
@@ -65,7 +67,9 @@ public class UnitGachaManager : MonoBehaviour
         if (appearanceDB != null)
         {
             _lastGeneratedStat.unitName = appearanceDB.GetRandomName();
-            _lastGeneratedStat.unitSprite = appearanceDB.GetRandomSprite();
+            Sprite selectedSprite = appearanceDB.GetRandomSprite();
+            _lastGeneratedStat.unitSprite = selectedSprite;
+            _lastGeneratedStat.spriteKey = selectedSprite.name;
         }
 
         _canReroll = false; // 재분배 기회 소진
@@ -82,6 +86,11 @@ public class UnitGachaManager : MonoBehaviour
     public void OnClickConfirm()
     {
         if (_lastGeneratedStat == null) return;
+
+        if (_lastGeneratedStat.unitSprite != null)
+        {
+            _lastGeneratedStat.spriteKey = _lastGeneratedStat.unitSprite.name;
+        }
 
         // 최종 저장
         if (InventoryManager.Instance != null)

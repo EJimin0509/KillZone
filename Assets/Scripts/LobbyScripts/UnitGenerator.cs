@@ -7,10 +7,15 @@ public class UnitGenerator : MonoBehaviour
     private const int TOTAL_EXTRA_POINTS = 15;
     private const int MAX_STAT_LIMIT = 7;
 
+    public Sprite defaultUnitSprite;
+
     public UnitData GenerateRandomUnit()
     {
         UnitData newStat = ScriptableObject.CreateInstance<UnitData>();
         newStat.SetDefault(); // 1. 기본 포인트 부여
+
+        newStat.unitSprite = defaultUnitSprite;
+        newStat.spriteKey = defaultUnitSprite.name;
 
         int remainingPoints = TOTAL_EXTRA_POINTS;
         List<string> statNames = new List<string> { "hp", "melee", "range", "repair", "medic", "will", "faith" };

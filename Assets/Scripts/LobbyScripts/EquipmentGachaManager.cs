@@ -40,6 +40,11 @@ public class EquipmentGachaManager : MonoBehaviour
     {
         if (_lastGeneratedItem == null) return;
 
+        if (string.IsNullOrEmpty(_lastGeneratedItem.spriteKey) && _lastGeneratedItem.equipSprite != null)
+        {
+            _lastGeneratedItem.spriteKey = _lastGeneratedItem.equipSprite.name;
+        }
+
         // 최종 인벤토리 저장
         if (InventoryManager.Instance != null)
         {

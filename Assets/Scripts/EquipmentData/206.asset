@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
   equipName: "\uB77C\uBA5C\uB7EC \uC544\uBA38"
   type: 3
-  equipSprite: {fileID: -314589219302796148, guid: 7f34c450245f5488bac2d54b5fbbae81, type: 3}
+  equipSprite: {fileID: 21300000, guid: fbddd4306af2b47458c43097d5b91f87, type: 3}
+  spriteKey: 
   attackSpeedBonus: 0
   attackRange: 1.5
   defense: 19
