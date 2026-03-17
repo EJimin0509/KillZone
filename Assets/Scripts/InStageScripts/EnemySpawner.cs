@@ -117,7 +117,12 @@ public class EnemySpawner : MonoBehaviour
             // 모든 웨이브 클리어 시 UI 처리
             if (enemyCountText != null) enemyCountText.text = "CLEARED";
             _isSpawnerStarted = false;
-            FindAnyObjectByType<ResultUIController>().ShowResult(true);
+            ResultUIController resultUI = FindAnyObjectByType<ResultUIController>();
+            if (resultUI != null)
+            {
+                resultUI.ShowResult(true); // 코드로 직접 승리(true) 호출
+            }
+
             OnAllWavesCleared?.Invoke();
         }
     }

@@ -13,6 +13,12 @@ public class LobbyStageManager : MonoBehaviour
     [Header("Stage Settings")]
     public StageButtonInfo[] stageButtons; // 스테이지 1, 2, 3 순서대로 할당
 
+    private void OnEnable()
+    {
+        // 씬이 활성화될 때(로비로 돌아올 때마다) 갱신
+        RefreshStageUI();
+    }
+
     private void Start()
     {
         RefreshStageUI();
@@ -29,7 +35,7 @@ public class LobbyStageManager : MonoBehaviour
             if (i >= unlocked.Length) break;
 
             // [수정] i == 0 (첫 번째 스테이지)이면 무조건 true, 그 외에는 저장된 데이터를 따름
-            bool isOpen = (i == 0) ? true : unlocked[i];
+            bool isOpen = unlocked[i];
 
             // 2. 버튼 활성화/비활성화
             stageButtons[i].stageButton.interactable = isOpen;

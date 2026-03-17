@@ -8,8 +8,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Current Status")]
     public int currentGold;
-    public int currentStage = 1; // 로드용
-    public int currentStageIndex; // 현재 플레이 중인 스테이지 (0부터 시작)
+    public int currentStage = 1;
+    public int currentStageIndex;
     public bool[] stageUnlocked = { true, false, false };
 
     [Header("Inventory")]
@@ -35,7 +35,6 @@ public class GameManager : MonoBehaviour
         LoadGame();
     }
 
-    // 1번, 2번 해결: 결과창에서 호출됨
     public void ClearStage(int stageIndex)
     {
         int nextStage = stageIndex + 1;
@@ -43,7 +42,6 @@ public class GameManager : MonoBehaviour
         {
             stageUnlocked[nextStage] = true;
         }
-        // 골드 합산 및 전체 저장 실행
         FinalizeStageGold();
     }
 
@@ -51,7 +49,6 @@ public class GameManager : MonoBehaviour
     {
         if (InventoryManager.Instance != null)
         {
-            // 리스트 개수 불일치 방지용 안전장치
             int count = Mathf.Min(InventoryManager.Instance.myUnits.Count, ownedUnits.Count);
             for (int i = 0; i < count; i++)
             {
@@ -77,14 +74,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        UserData data = new UserData
-        {
-            gold = currentGold,
-            currentStage = currentStage,
-            stageUnlocked = stageUnlocked,
-            ownedUnits = this.ownedUnits,
-            ownedEquips = this.ownedEquips
-        };
+        UserData data = new UserData();
+        data.gold = currentGold;
+        data.currentStage = currentStage;
+        // [수정] 배열의 값을 복사해서 저장 (참조 오류 방지)
+        data.stageUnlocked = (bool[])this.stageUnlocked.Clone();
+        data.ownedUnits = this.ownedUnits;
+        data.ownedEquips = this.ownedEquips;
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(_savePath, json);
@@ -100,7 +96,12 @@ public class GameManager : MonoBehaviour
 
             currentGold = data.gold;
             currentStage = data.currentStage;
-            stageUnlocked = data.stageUnlocked;
+
+            // 데이터 복제
+            if (data.stageUnlocked != null)
+            {
+                this.stageUnlocked = (bool[])data.stageUnlocked.Clone();
+            }
 
             ownedUnits.Clear();
             if (data.ownedUnits != null) ownedUnits.AddRange(data.ownedUnits);
@@ -108,10 +109,22 @@ public class GameManager : MonoBehaviour
             ownedEquips.Clear();
             if (data.ownedEquips != null) ownedEquips.AddRange(data.ownedEquips);
 
+            // [핵심] 로드 직후 로비 UI가 있다면 즉시 갱신 명령
+            RefreshLobbyUI();
+            RefreshAllUI();
+
             if (InventoryManager.Instance != null)
                 InventoryManager.Instance.RefreshInventoryFromSaveData();
+        }
+    }
 
-            RefreshAllUI();
+    public void RefreshLobbyUI()
+    {
+        var lobbyUI = FindAnyObjectByType<LobbyStageManager>();
+        if (lobbyUI != null)
+        {
+            lobbyUI.RefreshStageUI();
+            Debug.Log("로비 UI 갱신 완료");
         }
     }
 
@@ -119,6 +132,12 @@ public class GameManager : MonoBehaviour
     {
         var unitUI = FindAnyObjectByType<UnitInventorySceneManager>();
         if (unitUI != null) unitUI.RefreshUnitList();
+
+        var equipUI = FindAnyObjectByType<EquipmentInventoryUI>();
+        if (equipUI != null) equipUI.RefreshList();
+
+        var goldUI = FindAnyObjectByType<LobbyGoldUI>();
+        if (goldUI != null) goldUI.RefreshGoldDisplay();
     }
 
     private void OnApplicationQuit() => SaveGame();

@@ -16,6 +16,8 @@ public class ResultUIController : MonoBehaviour
     public Button retryButton;          // 다시하기 버튼
     public Button lobbyButton;          // 로비로 버튼
 
+    private bool _isResultShown = false;
+
     private void Start()
     {
         // 시작할 때는 결과창 숨기기
@@ -35,32 +37,33 @@ public class ResultUIController : MonoBehaviour
     /// <param name="isVictory">승리 여부 (true: Victory, false: Defeat)</param>
     public void ShowResult(bool isVictory)
     {
+        // 이미 결과가 출력 중이면 두 번째 호출(False/0골드)은 무시
+        if (_isResultShown) return;
+        _isResultShown = true;
+
         if (resultPanel == null) return;
 
-        resultPanel.SetActive(true);
-        Time.timeScale = 0f;
+        Debug.Log($"[최종 승인] 결과창 출력: {isVictory}, 골드: {GameManager.Instance.stageGold}");
 
-        // 1. 결과 타이틀 및 색상 설정
+        resultPanel.SetActive(true);
+
         if (resultTitleText != null)
         {
             resultTitleText.text = isVictory ? "VICTORY" : "DEFEAT";
             resultTitleText.color = isVictory ? Color.yellow : Color.red;
         }
 
-        // [추가] 2. 승리 시 스테이지 언락 처리 (9, 10번 요구사항)
-        if (isVictory && GameManager.Instance != null)
-        {
-            // 현재 씬 이름을 기반으로 스테이지 인덱스 계산 (예: "Stage1" -> 0)
-            // 혹은 GameManager에 현재 스테이지 인덱스를 저장해두고 사용하세요.
-            int currentIdx = GameManager.Instance.currentStageIndex;
-            GameManager.Instance.ClearStage(currentIdx);
-        }
-
-        // 3. 획득 재화량 표시
         if (goldValueText != null && GameManager.Instance != null)
         {
             goldValueText.text = GameManager.Instance.stageGold.ToString();
         }
+
+        if (isVictory && GameManager.Instance != null)
+        {
+            GameManager.Instance.ClearStage(GameManager.Instance.currentStageIndex);
+        }
+
+        Time.timeScale = 0f;
     }
 
     // 다시하기 버튼 로직

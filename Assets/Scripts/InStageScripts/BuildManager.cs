@@ -238,7 +238,7 @@ public class BuildManager : MonoBehaviour
     private void UpdateCostUI()
     {
         if (costText != null)
-            costText.text = $"Cost: {_currentCost} / {maxCost}";
+            costText.text = $"Cost: {_currentCost}";
     }
 
     public void OnClickStartWave()

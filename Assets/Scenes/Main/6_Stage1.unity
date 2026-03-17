@@ -14633,38 +14633,12 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 1222148337324201583, guid: 26e400ca946b01f4e99d04c06d32aceb, type: 3}
       spawnCount: 3
     spawnInterval: 0.2
-  - waveName: 2
-    enemyPool:
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 3e7e74b223f990044be5f66673be2e41, type: 3}
-      spawnCount: 5
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 26e400ca946b01f4e99d04c06d32aceb, type: 3}
-      spawnCount: 3
-    spawnInterval: 0.2
-  - waveName: 3
-    enemyPool:
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 3e7e74b223f990044be5f66673be2e41, type: 3}
-      spawnCount: 5
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 26e400ca946b01f4e99d04c06d32aceb, type: 3}
-      spawnCount: 3
-    spawnInterval: 0.2
   minX: -10
   maxX: 10
   spawnY: 16
   OnAllWavesCleared:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 874612699}
-        m_TargetAssemblyTypeName: ResultUIController, Assembly-CSharp
-        m_MethodName: ShowResult
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!4 &829143206
 Transform:
   m_ObjectHideFlags: 0
@@ -16303,7 +16277,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1175376082
 RectTransform:
   m_ObjectHideFlags: 0
