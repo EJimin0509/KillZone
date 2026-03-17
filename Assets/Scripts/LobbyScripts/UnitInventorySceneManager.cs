@@ -53,7 +53,7 @@ public class UnitInventorySceneManager : MonoBehaviour
     public void OnSelectUnit(UnitData unit)
     {
         _selectedUnit = unit;
-        
+
         detailNameText.text = unit.unitName;
 
         unitIllust.sprite = unit.unitSprite;
@@ -104,7 +104,8 @@ public class UnitInventorySceneManager : MonoBehaviour
         else
         {
             iconImage.sprite = null;
-            iconImage.color = new Color(1, 1, 1, 0.2f); // 빈 슬롯 표시
+            iconImage.enabled = false;
+            //iconImage.color = new Color(1, 1, 1, 0.2f); // 빈 슬롯 표시
         }
     }
 
@@ -118,7 +119,7 @@ public class UnitInventorySceneManager : MonoBehaviour
             if (FormationManager.Instance.formationSlots[i] == _selectedUnit)
             {
                 FormationManager.Instance.SetUnitToSlot(i, null); // 해당 슬롯 비움
-                Debug.Log($"{_selectedUnit.unitName}을(를) 편성에서 해제했습니다.");
+                //Debug.Log($"{_selectedUnit.unitName}을(를) 편성에서 해제했습니다.");
                 RefreshSquadVisuals(); // 비주얼 갱신
                 return;
             }
@@ -144,7 +145,8 @@ public class UnitInventorySceneManager : MonoBehaviour
                 else
                 {
                     squadImages[i].sprite = null;
-                    squadImages[i].color = new Color(1, 1, 1, 0.2f); // 빈 슬롯은 반투명하게
+                    squadImages[i].enabled = false;
+                    //squadImages[i].color = new Color(1, 1, 1, 0.2f); // 빈 슬롯은 반투명하게
                 }
             }
         }
@@ -156,7 +158,7 @@ public class UnitInventorySceneManager : MonoBehaviour
         // 1. 부모 오브젝트 체크
         if (listParent == null)
         {
-            Debug.LogError("listParent(Content)가 할당되지 않았습니다!");
+            //Debug.LogError("listParent(Content)가 할당되지 않았습니다!");
             return;
         }
 
@@ -165,7 +167,7 @@ public class UnitInventorySceneManager : MonoBehaviour
         // 2. 인벤토리 매니저 체크
         if (InventoryManager.Instance == null)
         {
-            Debug.LogError("InventoryManager를 찾을 수 없습니다!");
+            //Debug.LogError("InventoryManager를 찾을 수 없습니다!");
             return;
         }
 
@@ -174,7 +176,7 @@ public class UnitInventorySceneManager : MonoBehaviour
             // 3. 프리팹 체크
             if (unitSlotPrefab == null)
             {
-                Debug.LogError("unitSlotPrefab이 할당되지 않았습니다!");
+                //Debug.LogError("unitSlotPrefab이 할당되지 않았습니다!");
                 break;
             }
 
@@ -187,7 +189,7 @@ public class UnitInventorySceneManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("프리팹에 UnitInventorySlot 스크립트가 없습니다!");
+                //Debug.LogError("프리팹에 UnitInventorySlot 스크립트가 없습니다!");
             }
         }
     }
@@ -195,7 +197,11 @@ public class UnitInventorySceneManager : MonoBehaviour
     // 우측 상세창 정보 업데이트
     public void SelectUnit(UnitData unit)
     {
-        if (unit == null) return;
+        if (unit == null)
+        {
+            ClearDetailPanel();
+            return;
+        }
 
         _selectedUnit = unit;
         detailNameText.text = unit.unitName;
@@ -203,6 +209,13 @@ public class UnitInventorySceneManager : MonoBehaviour
         if (unitIllust != null)
         {
             unitIllust.sprite = unit.unitSprite;
+            unitIllust.color = Color.white;
+            unitIllust.enabled = true;
+        }
+        else
+        {
+            unitIllust.sprite = null;
+            unitIllust.enabled = false;
         }
 
         // 스탯 배열 순서대로 매핑 (UnitData 구조에 맞춰서)
@@ -217,7 +230,30 @@ public class UnitInventorySceneManager : MonoBehaviour
         RefreshEquipVisuals();
         RefreshSquadVisuals();
 
-        Debug.Log($"{unit.unitName} 상세 정보 표시 중");
+        //Debug.Log($"{unit.unitName} 상세 정보 표시 중");
+    }
+
+    private void ClearDetailPanel()
+    {
+        _selectedUnit = null;
+        detailNameText.text = "선택된 유닛 없음";
+
+        if (unitIllust != null)
+        {
+            unitIllust.sprite = null;
+            unitIllust.enabled = false; // 흰색 사각형 방지
+        }
+
+        // 스탯 텍스트 초기화 (0 또는 "-"으로 표시)
+        foreach (var txt in statTexts)
+        {
+            txt.text = "-";
+        }
+
+        // 장비 슬롯 이미지도 모두 비활성화
+        UpdateSlotVisual(helmButton, null);
+        UpdateSlotVisual(chestButton, null);
+        UpdateSlotVisual(weaponButton, null);
     }
 
     public void OnFormationButtonClick()
@@ -231,7 +267,7 @@ public class UnitInventorySceneManager : MonoBehaviour
             // 이미 배치된 유닛인지 확인 (중복 방지)
             if (FormationManager.Instance.formationSlots[i] == _selectedUnit)
             {
-                Debug.Log("이미 배치된 유닛입니다.");
+                //Debug.Log("이미 배치된 유닛입니다.");
                 return;
             }
 
@@ -246,12 +282,12 @@ public class UnitInventorySceneManager : MonoBehaviour
 
         if (success)
         {
-            Debug.Log($"{_selectedUnit.unitName}을(를) 편성에 추가했습니다!");
+            //Debug.Log($"{_selectedUnit.unitName}을(를) 편성에 추가했습니다!");
             RefreshSquadVisuals();
         }
         else
         {
-            Debug.LogWarning("편성 슬롯이 가득 찼습니다!");
+            //Debug.LogWarning("편성 슬롯이 가득 찼습니다!");
         }
     }
 }

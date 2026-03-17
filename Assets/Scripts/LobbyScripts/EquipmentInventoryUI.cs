@@ -19,6 +19,8 @@ public class EquipmentInventoryUI : MonoBehaviour
 
     private void Start()
     {
+        ClearDetailPanel();
+
         // 첫 화면은 무기 탭으로 시작
         ChangeTab((int)EquipmentType.Melee);
     }
@@ -82,6 +84,13 @@ public class EquipmentInventoryUI : MonoBehaviour
 
     public void SelectEquipment(EquipmentData data)
     {
+        if (data == null)
+        {
+            // 데이터가 없는 예외 케이스 처리 (선택 해제 등)
+            ClearDetailPanel();
+            return;
+        }
+
         equipNameText.text = data.equipName;
 
         // 기본 수치 표시
@@ -103,15 +112,29 @@ public class EquipmentInventoryUI : MonoBehaviour
             if (data.equipSprite != null)
             {
                 equipLargeImage.sprite = data.equipSprite;
-                equipLargeImage.color = Color.white; // 불투명하게 설정
                 equipLargeImage.enabled = true;
+                equipLargeImage.color = Color.white; // 불투명하게 설정
             }
             else
             {
                 // 이미지가 없는 경우 투명하게 처리
                 equipLargeImage.sprite = null;
+                equipLargeImage.enabled = false;
                 equipLargeImage.color = new Color(1, 1, 1, 0);
             }
+        }
+    }
+
+    private void ClearDetailPanel()
+    {
+        equipNameText.text = "";
+        baseStatText.text = "";
+        bonusStatText.text = "";
+        if (equipLargeImage != null)
+        {
+            equipLargeImage.sprite = null;
+            equipLargeImage.enabled = false; // 여기서도 꺼줍니다.
+            equipLargeImage.color = new Color(1, 1, 1, 0);
         }
     }
 

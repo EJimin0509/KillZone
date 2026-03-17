@@ -9,10 +9,17 @@ public class UnitInventorySlot : MonoBehaviour
 
     public void Setup(UnitData data, Action onClickAction)
     {
-        if (unitIcon != null && data.unitSprite != null)
+        if (unitIcon != null)
         {
-            unitIcon.sprite = data.unitSprite;
-            unitIcon.color = Color.white; // 투명도 방지
+            if (data.unitSprite != null)
+            {
+                unitIcon.sprite = data.unitSprite;
+                unitIcon.enabled = true;
+            }
+            else
+            {
+                unitIcon.enabled = false; // 슬롯 아이콘이 없을 때 처리
+            }
         }
 
         clickButton.onClick.RemoveAllListeners();
