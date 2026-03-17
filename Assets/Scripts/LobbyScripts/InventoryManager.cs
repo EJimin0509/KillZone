@@ -123,14 +123,31 @@ public class InventoryManager : MonoBehaviour
                 myEquipments.Add(equip);
         }
 
-        Debug.Log($"장비 SO 생성 완료: {myEquipments.Count}개");
-        Debug.Log("인벤토리 전체 동기화 성공!");
+        //Debug.Log($"장비 SO 생성 완료: {myEquipments.Count}개");
+        //Debug.Log("인벤토리 전체 동기화 성공!");
 
         foreach (var unit in myUnits)
         {
             if (unit.equippedHelm != null) unit.equippedHelm.ownerUnit = unit;
             if (unit.equippedChest != null) unit.equippedChest.ownerUnit = unit;
             if (unit.equippedWeapon != null) unit.equippedWeapon.ownerUnit = unit;
+        }
+
+        for (int i = 0; i < myUnits.Count; i++)
+        {
+            var unitSO = myUnits[i];
+            var unitSave = GameManager.Instance.ownedUnits[i];
+
+            // 1. 장비 복구 (이름으로 내 인벤토리에서 찾음)
+            unitSO.equippedHelm = myEquipments.Find(e => e.equipName == unitSave.equippedHelmKey);
+            unitSO.equippedChest = myEquipments.Find(e => e.equipName == unitSave.equippedChestKey);
+            unitSO.equippedWeapon = myEquipments.Find(e => e.equipName == unitSave.equippedWeaponKey);
+
+            // 2. 편성(스쿼드) 복구
+            if (unitSave.squadIndex != -1)
+            {
+                FormationManager.Instance.formationSlots[unitSave.squadIndex] = unitSO;
+            }
         }
     }
 

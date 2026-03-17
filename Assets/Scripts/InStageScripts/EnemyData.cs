@@ -1,24 +1,32 @@
 using UnityEngine;
 
-public enum EnemyType { Melee, Range } // 근접인지 원거리인지
+public enum EnemyType { Melee, Range }
 
 [CreateAssetMenu(fileName = "EnemyData", menuName = "Scriptable Objects/EnemyData")]
 public class EnemyData : ScriptableObject
 {
-    public string enemyName; // 이름
+    public string enemyName;
 
     [Header("Base Stats")]
-    public float maxHp = 50f;      // HP
-    public float attackPower = 5f; // 공격력
-    public float defense = 1f;     // 방어력
-    public float moveSpeed = 2f;   // 이동 속도
+    public float maxHp = 50f;
+    public float attackPower = 5f;
+    public float defense = 1f;
+    public float moveSpeed = 2f;
 
     [Header("Combat Settings")]
-    public EnemyType attackType;   // 공격 타입(근, 원)
-    public float attackRange = 1.5f; // 공격 사거리
-    public float attackSpeed = 1f; // 초당 공격 횟수
-    [Range(0, 100)] public float accuracy = 80f; // 원거리 전용
+    public EnemyType attackType;
+    public float attackRange = 1.5f;
+    public float attackSpeed = 1f;
+    [Range(0, 100)] public float accuracy = 80f;
 
     [Header("Reward")]
-    public int killReward = 3;
+    public int killReward = 3;      // 기본 처치 보상 (3원)
+    public bool isBoss = false;     // 보스 여부
+    public int bossBonus = 50;      // 보스일 경우 추가 금액
+
+    // 최종 보상을 계산해서 가져오는 함수 (편의용)
+    public int GetTotalReward()
+    {
+        return isBoss ? killReward + bossBonus : killReward;
+    }
 }

@@ -8,13 +8,15 @@ public class GameManager : MonoBehaviour
 
     [Header("Current Status")]
     public int currentGold;
-    public int currentStage = 1;
+    public int currentStage = 1; // 로드용
+    public int currentStageIndex; // 현재 플레이 중인 스테이지 (0부터 시작)
     public bool[] stageUnlocked = { true, false, false };
 
     [Header("Inventory")]
     public List<UnitSaveData> ownedUnits = new List<UnitSaveData>();
     public List<EquipSaveData> ownedEquips = new List<EquipSaveData>();
 
+    public int stageGold;
     private string _savePath;
 
     private void Awake()
@@ -24,7 +26,6 @@ public class GameManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             _savePath = Path.Combine(Application.persistentDataPath, "saveData.json");
-            
         }
         else Destroy(gameObject);
     }
@@ -34,20 +35,60 @@ public class GameManager : MonoBehaviour
         LoadGame();
     }
 
+    // 1번, 2번 해결: 결과창에서 호출됨
+    public void ClearStage(int stageIndex)
+    {
+        int nextStage = stageIndex + 1;
+        if (nextStage < stageUnlocked.Length)
+        {
+            stageUnlocked[nextStage] = true;
+        }
+        // 골드 합산 및 전체 저장 실행
+        FinalizeStageGold();
+    }
+
     public void SaveGame()
     {
+        if (InventoryManager.Instance != null)
+        {
+            // 리스트 개수 불일치 방지용 안전장치
+            int count = Mathf.Min(InventoryManager.Instance.myUnits.Count, ownedUnits.Count);
+            for (int i = 0; i < count; i++)
+            {
+                var unitSO = InventoryManager.Instance.myUnits[i];
+                var unitSave = ownedUnits[i];
+
+                unitSave.equippedHelmKey = unitSO.equippedHelm != null ? unitSO.equippedHelm.equipName : "";
+                unitSave.equippedChestKey = unitSO.equippedChest != null ? unitSO.equippedChest.equipName : "";
+                unitSave.equippedWeaponKey = unitSO.equippedWeapon != null ? unitSO.equippedWeapon.equipName : "";
+
+                unitSave.squadIndex = -1;
+                if (FormationManager.Instance != null)
+                {
+                    for (int s = 0; s < FormationManager.Instance.formationSlots.Length; s++)
+                    {
+                        if (FormationManager.Instance.formationSlots[s] == unitSO)
+                        {
+                            unitSave.squadIndex = s;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         UserData data = new UserData
         {
             gold = currentGold,
             currentStage = currentStage,
             stageUnlocked = stageUnlocked,
-            ownedUnits = this.ownedUnits,   // 리스트 통째로 전달
-            ownedEquips = this.ownedEquips  // 리스트 통째로 전달
+            ownedUnits = this.ownedUnits,
+            ownedEquips = this.ownedEquips
         };
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(_savePath, json);
-        Debug.Log("게임 저장 완료!");
+        Debug.Log("Game Saved Successfully");
     }
 
     public void LoadGame()
@@ -61,43 +102,26 @@ public class GameManager : MonoBehaviour
             currentStage = data.currentStage;
             stageUnlocked = data.stageUnlocked;
 
-            // 리스트 데이터 복사
             ownedUnits.Clear();
             if (data.ownedUnits != null) ownedUnits.AddRange(data.ownedUnits);
 
             ownedEquips.Clear();
             if (data.ownedEquips != null) ownedEquips.AddRange(data.ownedEquips);
 
-            Debug.Log($"[1] GameManager 로드 완료: 유닛 {ownedUnits.Count}개");
-
-            // [핵심] InventoryManager가 존재한다면 즉시 SO 복구 실행
             if (InventoryManager.Instance != null)
-            {
                 InventoryManager.Instance.RefreshInventoryFromSaveData();
-            }
-            else
-            {
-                Debug.LogError("InventoryManager Instance를 찾을 수 없습니다!");
-            }
 
-            // [핵심] UI 갱신 (씬에 UI가 있을 때만)
             RefreshAllUI();
         }
     }
 
-    // UI를 찾는 로직은 별도로 빼서 관리하면 편합니다.
     private void RefreshAllUI()
     {
         var unitUI = FindAnyObjectByType<UnitInventorySceneManager>();
         if (unitUI != null) unitUI.RefreshUnitList();
-
-        var equipUI = FindAnyObjectByType<EquipmentInventoryUI>();
-        if (equipUI != null) equipUI.RefreshList();
     }
 
     private void OnApplicationQuit() => SaveGame();
-
-    // --- 데이터 추가 메서드 ---
 
     public void AddUnit(UnitData unit)
     {
@@ -132,5 +156,12 @@ public class GameManager : MonoBehaviour
         SaveGame();
     }
 
-    public void AddGold(int amount) => currentGold += amount;
+    public void AddGold(int amount) => stageGold += amount;
+
+    public void FinalizeStageGold()
+    {
+        currentGold += stageGold;
+        stageGold = 0;
+        SaveGame();
+    }
 }

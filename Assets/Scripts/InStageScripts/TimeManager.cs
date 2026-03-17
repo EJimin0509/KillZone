@@ -23,7 +23,7 @@ public class TimeManager : MonoBehaviour
         // 성능 최적화를 위해 fixedDeltaTime도 배속에 맞춰 조정
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
-        Debug.Log($"<color=yellow>[배속 변경]</color> 현재 배속: {newScale}x");
+        //Debug.Log($"<color=yellow>[배속 변경]</color> 현재 배속: {newScale}x");
     }
 
     // 싱글톤이나 다른 매니저에서 현재 배속 확인용

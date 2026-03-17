@@ -275,11 +275,18 @@ public class EnemyAI : MonoBehaviour
 
     private void Die()
     {
-        // 죽는 로직
-        if (GameManager.Instance != null)
-            GameManager.Instance.AddGold(data.killReward);
+        if (data != null && GameManager.Instance != null)
+        {
+            // 보스 여부를 판단하여 보상 계산 (EnemyData에 GetTotalReward를 만들었다면 호출)
+            int reward = data.killReward;
+            if (data.isBoss) reward += data.bossBonus;
 
-        if (_obstacle != null) _obstacle.enabled = false; // 죽을 때 장애물 제거
+            GameManager.Instance.AddGold(reward);
+
+            Debug.Log($"<color=yellow>{data.enemyName}</color> 사망! 획득 골드: {reward}");
+        }
+
+        if (_obstacle != null) _obstacle.enabled = false;
 
         // 오브젝트 풀 반납
         if (SimpleObjectPool.Instance != null)
