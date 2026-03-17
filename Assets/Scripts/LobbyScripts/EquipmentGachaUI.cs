@@ -1,70 +1,69 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class EquipmentGachaUI : MonoBehaviour
 {
     [Header("Result Texts")]
-    public TextMeshProUGUI gradeText;     // 등급 (최상급, 상급 등)
-    public TextMeshProUGUI nameText;      // 장비 이름
-    public TextMeshProUGUI baseStatText;  // 기본 수치 (사거리 또는 방어력)
-    public TextMeshProUGUI bonusStatText; // 보너스 스탯 목록
-
-    [Header("Buttons")]
-    public Button drawButton;
-    public Button confirmButton;
-
-    // 버튼 상태 제어
-    public void SetButtonState(bool draw, bool confirm)
-    {
-        if (drawButton) drawButton.interactable = draw;
-        if (confirmButton) confirmButton.interactable = confirm;
-    }
+    public TextMeshProUGUI equipmentInfoText; // 이름, 등급, 기본 스탯 통합
+    public TextMeshProUGUI bonusStatText;    // 보너스 스탯 리스트
 
     // 장비 정보 표시
     public void DisplayEquipment(EquipmentData item, string grade)
     {
-        // 디버깅용 체크
-        if (gradeText == null) { Debug.LogError("gradeText가 할당되지 않았습니다!"); return; }
-        if (nameText == null) { Debug.LogError("nameText가 할당되지 않았습니다!"); return; }
-        if (baseStatText == null) { Debug.LogError("baseStatText가 할당되지 않았습니다!"); return; }
-        if (bonusStatText == null) { Debug.LogError("bonusStatText가 할당되지 않았습니다!"); return; }
+        if (item == null) return;
 
-        if (gradeText == null || nameText == null || baseStatText == null || bonusStatText == null)
-        {
-            Debug.LogError("EquipmentGachaUI: 텍스트 컴포넌트 중 일부가 인스펙터에서 할당되지 않았습니다!");
-            return;
-        }
-
-        if (item == null)
-        {
-            Debug.LogError("EquipmentGachaUI: 전달된 EquipmentData가 Null입니다!");
-            return;
-        }
-
-        gradeText.text = $"등급: {grade}";
-        nameText.text = item.equipName;
-
-        // 기본 수치 (무기면 사거리, 방어구면 방어력)
+        // 1. 기본 정보 및 주 능력치 설정
+        string mainStatInfo = "";
         if (item.type == EquipmentType.Melee || item.type == EquipmentType.Bow)
-            baseStatText.text = $"기본 사거리: {item.attackRange}";
-        else
-            baseStatText.text = $"기본 방어력: {item.defense}";
-
-        // 보너스 스탯 정리
-        string bonus = "보너스 스탯:\n";
-        foreach (var b in item.additionalStatBonuses)
         {
-            bonus += $"- {b.type}: +{b.bonusLevel}\n";
+            mainStatInfo = $"사거리: {item.attackRange}\n공속 보너스: {item.attackSpeedBonus}";
         }
-        bonusStatText.text = bonus;
+        else // Helm, Chest
+        {
+            mainStatInfo = $"방어력: {item.defense}";
+        }
+
+        equipmentInfoText.text =
+            $"이름: {item.equipName}\n" +
+            $"등급: {grade}\n" +
+            $"{mainStatInfo}";
+
+        // 2. 보너스 스탯 한국어 치환 및 리스트 생성
+        string bonusContent = "보너스 스탯:\n";
+        if (item.additionalStatBonuses == null || item.additionalStatBonuses.Count == 0)
+        {
+            bonusContent += "- 없음";
+        }
+        else
+        {
+            foreach (var b in item.additionalStatBonuses)
+            {
+                bonusContent += $"- {GetStatKoreanName(b.type)} +{b.bonusLevel}\n";
+            }
+        }
+        bonusStatText.text = bonusContent;
+    }
+
+    // StatBonusType을 기획서 양식에 맞는 한국어 이름으로 치환
+    private string GetStatKoreanName(StatBonusType type)
+    {
+        return type switch
+        {
+            StatBonusType.Hp => "체력",
+            StatBonusType.AttackPower => "격투",
+            StatBonusType.RangeAccuracy => "사격",
+            StatBonusType.RepairSpeed => "수리",
+            StatBonusType.HealSpeed => "의술",
+            StatBonusType.MentalValue => "의지",
+            StatBonusType.MentalHealAmount => "신앙",
+            _ => type.ToString()
+        };
     }
 
     public void ClearDisplay()
     {
-        gradeText.text = "-";
-        nameText.text = "장비를 뽑아주세요";
-        baseStatText.text = "-";
-        bonusStatText.text = "-";
+        equipmentInfoText.text = "이름: -\n등급: -\n스탯: -";
+        bonusStatText.text = "보너스 스탯:\n-";
     }
 }

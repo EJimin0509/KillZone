@@ -13,7 +13,7 @@ public class UnitGachaManager : MonoBehaviour
     private void Start()
     {
         // 처음에는 Draw만 활성화된 상태로 시작
-        gachaUI.SetButtonState(true, false, false);
+        //gachaUI.SetButtonState(true, false, false);
     }
 
     // 처음 뽑기 버튼
@@ -50,6 +50,9 @@ public class UnitGachaManager : MonoBehaviour
 
         gachaUI.DisplayUnitStats(_lastGeneratedStat);
         gachaUI.SetButtonState(false, true, true); // Draw 비활성, 리롤/컨펌 활성
+
+        if (GachaMaster.Instance != null)
+            GachaMaster.Instance.UpdateResultImage(_lastGeneratedStat.unitSprite);
     }
 
     // 1회 다시 분배 가능
@@ -71,6 +74,9 @@ public class UnitGachaManager : MonoBehaviour
 
         // 리롤 버튼 비활성화
         gachaUI.SetButtonState(false, false, true);
+
+        if (GachaMaster.Instance != null)
+            GachaMaster.Instance.UpdateResultImage(_lastGeneratedStat.unitSprite);
     }
 
     public void OnClickConfirm()

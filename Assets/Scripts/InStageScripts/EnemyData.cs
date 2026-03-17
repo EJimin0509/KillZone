@@ -18,4 +18,7 @@ public class EnemyData : ScriptableObject
     public float attackRange = 1.5f; // 공격 사거리
     public float attackSpeed = 1f; // 초당 공격 횟수
     [Range(0, 100)] public float accuracy = 80f; // 원거리 전용
+
+    [Header("Reward")]
+    public int killReward = 3;
 }

@@ -276,6 +276,8 @@ public class EnemyAI : MonoBehaviour
     private void Die()
     {
         // 죽는 로직
+        if (GameManager.Instance != null)
+            GameManager.Instance.AddGold(data.killReward);
 
         if (_obstacle != null) _obstacle.enabled = false; // 죽을 때 장애물 제거
 

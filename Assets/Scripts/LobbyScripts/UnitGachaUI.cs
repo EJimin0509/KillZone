@@ -4,19 +4,23 @@ using UnityEngine.UI;
 
 public class UnitGachaUI : MonoBehaviour
 {
-    [Header("Stat Texts")]
-    public TextMeshProUGUI hpText;
-    public TextMeshProUGUI meleeText;
-    public TextMeshProUGUI rangeText;
-    public TextMeshProUGUI repairText;
-    public TextMeshProUGUI medicText;
-    public TextMeshProUGUI willText;
-    public TextMeshProUGUI faithText;
+    //[Header("Stat Texts")]
+    //public TextMeshProUGUI hpText;
+    //public TextMeshProUGUI meleeText;
+    //public TextMeshProUGUI rangeText;
+    //public TextMeshProUGUI repairText;
+    //public TextMeshProUGUI medicText;
+    //public TextMeshProUGUI willText;
+    //public TextMeshProUGUI faithText;
 
     [Header("Buttons")]
     public Button rerollButton;
     public Button drawButton;
     public Button confirmButton;
+
+    [Header("Stat Texts")]
+    public TextMeshProUGUI unitNameText; // 이름 표시용 추가
+    public TextMeshProUGUI totalStatText;
 
     private UnitData _currentGeneratedUnit;
 
@@ -31,27 +35,25 @@ public class UnitGachaUI : MonoBehaviour
     // 뽑기 로직 실행 후 호출될 함수
     public void DisplayUnitStats(UnitData unit)
     {
-        _currentGeneratedUnit = unit;
+        if (unit == null) return;
 
-        // 텍스트 반영
-        hpText.text = unit.hp.ToString();
-        meleeText.text = unit.melee.ToString();
-        rangeText.text = unit.range.ToString();
-        repairText.text = unit.repair.ToString();
-        medicText.text = unit.medic.ToString();
-        willText.text = unit.will.ToString();
-        faithText.text = unit.faith.ToString();
+        // 이름 및 전체 스탯 출력 양식
+        unitNameText.text = $"이름: {unit.unitName}";
+
+        totalStatText.text =
+            $"체력: {unit.hp}\n" +
+            $"격투: {unit.melee}\n" +
+            $"사격: {unit.range}\n" +
+            $"수리: {unit.repair}\n" +
+            $"의술: {unit.medic}\n" +
+            $"의지: {unit.will}\n" +
+            $"신앙: {unit.faith}";
     }
 
     // 텍스트 초기화
     public void ClearDisplay()
     {
-        hpText.text = "0";
-        meleeText.text = "0";
-        rangeText.text = "0";
-        repairText.text = "0";
-        medicText.text = "0";
-        willText.text = "0";
-        faithText.text = "0";
+        unitNameText.text = "이름: -";
+        totalStatText.text = "체력: 0\n격투: 0\n사격: 0\n수리: 0\n의술: 0\n의지: 0\n신앙: 0";
     }
 }

@@ -31,8 +31,9 @@ public class UnitInventorySceneManager : MonoBehaviour
     {
         RefreshUnitList();
         RefreshSquadVisuals();
+
         // 첫 번째 용병이 있다면 자동으로 선택
-        if (InventoryManager.Instance.myUnits.Count > 0)
+        if (InventoryManager.Instance != null && InventoryManager.Instance.myUnits.Count > 0)
         {
             SelectUnit(InventoryManager.Instance.myUnits[0]);
         }

@@ -14012,6 +14012,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd6e37dcbdd6d484a876c1d459fd2d87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CommandManager
+  unitLayer:
+    serializedVersion: 2
+    m_Bits: 0
   structureLayer:
     serializedVersion: 2
     m_Bits: 10240

@@ -9,7 +9,7 @@ public class EquipmentGachaManager : MonoBehaviour
 
     private void Start()
     {
-        gachaUI.SetButtonState(true, false);
+        //gachaUI.SetButtonState(true, false);
     }
 
     public void OnClickEquipmentGacha()
@@ -29,8 +29,11 @@ public class EquipmentGachaManager : MonoBehaviour
         if (_lastGeneratedItem != null)
         {
             gachaUI.DisplayEquipment(_lastGeneratedItem, grade);
-            gachaUI.SetButtonState(false, true);
+            //gachaUI.SetButtonState(false, true);
         }
+
+        if (GachaMaster.Instance != null)
+            GachaMaster.Instance.UpdateResultImage(_lastGeneratedItem.equipSprite);
     }
 
     public void OnClickConfirm()
@@ -46,6 +49,6 @@ public class EquipmentGachaManager : MonoBehaviour
         // √ ±‚»≠
         _lastGeneratedItem = null;
         gachaUI.ClearDisplay();
-        gachaUI.SetButtonState(true, false);
+        //gachaUI.SetButtonState(true, false);
     }
 }

@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: 2
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: 
-  maxHp: 8
-  attackPower: 0.5
+  maxHp: 15
+  attackPower: 10
   defense: 0
   moveSpeed: 1
   attackType: 1
-  attackRange: 10
+  attackRange: 5
   attackSpeed: 0.5
   accuracy: 40
