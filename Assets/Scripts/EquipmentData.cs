@@ -31,4 +31,10 @@ public class EquipmentData : ScriptableObject
     [Header("Random Stat Bonuses")]
     // 이 리스트에 담긴 스탯이 유닛에 합산
     public List<StatBonus> additionalStatBonuses;
+
+    [Header("Runtime Info")]
+    [System.NonSerialized] // 세이브 파일에 이 객체 자체를 저장하지 않도록 설정 (참조만 활용)
+    public UnitData ownerUnit;
+
+    public bool IsEquipped => ownerUnit != null;
 }

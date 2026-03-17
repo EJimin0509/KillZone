@@ -125,6 +125,13 @@ public class InventoryManager : MonoBehaviour
 
         Debug.Log($"장비 SO 생성 완료: {myEquipments.Count}개");
         Debug.Log("인벤토리 전체 동기화 성공!");
+
+        foreach (var unit in myUnits)
+        {
+            if (unit.equippedHelm != null) unit.equippedHelm.ownerUnit = unit;
+            if (unit.equippedChest != null) unit.equippedChest.ownerUnit = unit;
+            if (unit.equippedWeapon != null) unit.equippedWeapon.ownerUnit = unit;
+        }
     }
 
     // 가챠 성공 시 호출

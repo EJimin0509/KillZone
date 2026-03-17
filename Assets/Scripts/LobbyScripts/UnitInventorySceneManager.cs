@@ -63,13 +63,59 @@ public class UnitInventorySceneManager : MonoBehaviour
 
     private void EquipItem(EquipmentData item, int slot)
     {
-        if (_selectedUnit == null) return;
+        if (_selectedUnit == null || item == null) return;
 
+        // 1. [해제] 이미 내가 끼고 있는 장비를 팝업에서 또 선택했다면?
+        if (item.ownerUnit == _selectedUnit)
+        {
+            // 현재 슬롯에 장착된 장비가 바로 그 아이템인지 확인 후 해제
+            if (GetItemInSlot(slot) == item)
+            {
+                item.ownerUnit = null; // 장비에서 주인 정보 삭제
+                SetItemInSlot(slot, null); // 유닛 슬롯 비움
+                RefreshEquipVisuals();
+                return;
+            }
+        }
+
+        // 2. [뺏어오기] 다른 유닛이 이미 끼고 있는 장비라면?
+        if (item.ownerUnit != null && item.ownerUnit != _selectedUnit)
+        {
+            UnitData oldOwner = item.ownerUnit;
+            if (oldOwner.equippedHelm == item) oldOwner.equippedHelm = null;
+            if (oldOwner.equippedChest == item) oldOwner.equippedChest = null;
+            if (oldOwner.equippedWeapon == item) oldOwner.equippedWeapon = null;
+
+            Debug.Log($"{oldOwner.unitName}에게서 {item.equipName}을(를) 가져왔습니다.");
+        }
+
+        // 3. [교체] 내가 현재 이 슬롯에 끼고 있던 기존 장비의 주인 정보 초기화
+        EquipmentData oldItem = GetItemInSlot(slot);
+        if (oldItem != null) oldItem.ownerUnit = null;
+
+        // 4. [장착] 이제 새 장비를 내 슬롯에 넣고, 장비에게 내가 주인이라고 알려줌
+        SetItemInSlot(slot, item);
+        item.ownerUnit = _selectedUnit;
+
+        RefreshEquipVisuals();
+
+        // 최종적으로 게임 데이터 저장 (편의성)
+        if (GameManager.Instance != null) GameManager.Instance.SaveGame();
+    }
+
+    private EquipmentData GetItemInSlot(int slot)
+    {
+        if (slot == 0) return _selectedUnit.equippedHelm;
+        if (slot == 1) return _selectedUnit.equippedChest;
+        if (slot == 2) return _selectedUnit.equippedWeapon;
+        return null;
+    }
+
+    private void SetItemInSlot(int slot, EquipmentData item)
+    {
         if (slot == 0) _selectedUnit.equippedHelm = item;
         else if (slot == 1) _selectedUnit.equippedChest = item;
         else if (slot == 2) _selectedUnit.equippedWeapon = item;
-
-        RefreshEquipVisuals();
     }
 
     private void RefreshEquipVisuals()
@@ -290,4 +336,5 @@ public class UnitInventorySceneManager : MonoBehaviour
             //Debug.LogWarning("편성 슬롯이 가득 찼습니다!");
         }
     }
+
 }
