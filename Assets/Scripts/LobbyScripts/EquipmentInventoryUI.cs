@@ -25,7 +25,7 @@ public class EquipmentInventoryUI : MonoBehaviour
         ChangeTab((int)EquipmentType.Melee);
     }
 
-    // 탭 버튼(Weapon: 0, Helmet: 2, Armor: 3)에서 호출할 함수
+    // 탭 버튼에서 호출할 함수
     public void ChangeTab(int typeIndex)
     {
         _currentTab = (EquipmentType)typeIndex;
@@ -34,19 +34,11 @@ public class EquipmentInventoryUI : MonoBehaviour
 
     public void RefreshList()
     {
-        if (listParent == null)
-        {
-            Debug.LogError("listParent(Content)가 비어있습니다!");
-            return;
-        }
+        if (listParent == null) return;
 
         foreach (Transform child in listParent) Destroy(child.gameObject);
 
-        if (InventoryManager.Instance == null)
-        {
-            Debug.LogError("InventoryManager가 씬에 없습니다!");
-            return;
-        }
+        if (InventoryManager.Instance == null) return;
 
         List<EquipmentData> allEquips = InventoryManager.Instance.myEquipments;
 
@@ -62,22 +54,12 @@ public class EquipmentInventoryUI : MonoBehaviour
                 if (equip.type != _currentTab) continue;
             }
 
-            if (equipmentSlotPrefab == null)
-            {
-                Debug.LogError("equipmentSlotPrefab이 할당되지 않았습니다!");
-                break;
-            }
-
             GameObject slot = Instantiate(equipmentSlotPrefab, listParent);
             EquipmentInventorySlot slotScript = slot.GetComponent<EquipmentInventorySlot>();
 
             if (slotScript != null)
             {
                 slotScript.Setup(equip, () => SelectEquipment(equip));
-            }
-            else
-            {
-                Debug.LogError($"{equipmentSlotPrefab.name} 프리팹에 EquipmentInventorySlot 스크립트가 없습니다!");
             }
         }
     }
@@ -86,24 +68,25 @@ public class EquipmentInventoryUI : MonoBehaviour
     {
         if (data == null)
         {
-            // 데이터가 없는 예외 케이스 처리 (선택 해제 등)
             ClearDetailPanel();
             return;
         }
 
         equipNameText.text = data.equipName;
 
-        // 기본 수치 표시
+        // 기본 수치 표시 (사거리 또는 방어력)
         if (data.type == EquipmentType.Melee || data.type == EquipmentType.Bow)
             baseStatText.text = $"사거리: {data.attackRange}";
         else
             baseStatText.text = $"방어력: {data.defense}";
 
-        // 보너스 스탯 표시
+        // --- 보너스 스탯 표시 (한글 매핑 적용) ---
         string bonus = "";
         foreach (var b in data.additionalStatBonuses)
         {
-            bonus += $"{b.type}: +{b.bonusLevel}\n";
+            // Enum 타입을 한글 명칭으로 변환하여 추가
+            string korName = GetStatKoreanName(b.type);
+            bonus += $"{korName}: +{b.bonusLevel}\n";
         }
         bonusStatText.text = bonus;
 
@@ -113,15 +96,31 @@ public class EquipmentInventoryUI : MonoBehaviour
             {
                 equipLargeImage.sprite = data.equipSprite;
                 equipLargeImage.enabled = true;
-                equipLargeImage.color = Color.white; // 불투명하게 설정
+                equipLargeImage.color = Color.white;
             }
             else
             {
-                // 이미지가 없는 경우 투명하게 처리
                 equipLargeImage.sprite = null;
                 equipLargeImage.enabled = false;
-                equipLargeImage.color = new Color(1, 1, 1, 0);
             }
+        }
+    }
+
+    /// <summary>
+    /// StatBonusType Enum을 기획서상의 한글 명칭으로 매핑합니다.
+    /// </summary>
+    private string GetStatKoreanName(StatBonusType type)
+    {
+        switch (type)
+        {
+            case StatBonusType.Hp: return "체력";
+            case StatBonusType.AttackPower: return "격투";
+            case StatBonusType.RangeAccuracy: return "사격";
+            case StatBonusType.RepairSpeed: return "수리";
+            case StatBonusType.HealSpeed: return "의료";
+            case StatBonusType.MentalValue: return "의지";
+            case StatBonusType.MentalHealAmount: return "신앙";
+            default: return type.ToString(); // 혹시 모를 예외 시 영어 이름 출력
         }
     }
 
@@ -133,9 +132,7 @@ public class EquipmentInventoryUI : MonoBehaviour
         if (equipLargeImage != null)
         {
             equipLargeImage.sprite = null;
-            equipLargeImage.enabled = false; // 여기서도 꺼줍니다.
-            equipLargeImage.color = new Color(1, 1, 1, 0);
+            equipLargeImage.enabled = false;
         }
     }
-
 }

@@ -14628,7 +14628,7 @@ MonoBehaviour:
   waves:
   - waveName: 1
     enemyPool:
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 450490a4ce8def04383ad8803e3cd03e, type: 3}
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 3e7e74b223f990044be5f66673be2e41, type: 3}
       spawnCount: 1
     spawnInterval: 0
   minX: -10
