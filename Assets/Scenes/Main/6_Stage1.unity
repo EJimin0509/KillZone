@@ -14554,7 +14554,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 828133610}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1977888125}
+        m_TargetAssemblyTypeName: PauseManager, Assembly-CSharp
+        m_MethodName: TogglePause
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &828133610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14604,6 +14616,7 @@ GameObject:
   - component: {fileID: 829143206}
   - component: {fileID: 829143205}
   - component: {fileID: 829143207}
+  - component: {fileID: 829143208}
   m_Layer: 0
   m_Name: EnemySpawner
   m_TagString: Untagged
@@ -14646,7 +14659,7 @@ MonoBehaviour:
       spawnCount: 2
     - enemyPrefab: {fileID: 1222148337324201583, guid: 26e400ca946b01f4e99d04c06d32aceb, type: 3}
       spawnCount: 2
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 450490a4ce8def04383ad8803e3cd03e, type: 3}
+    - enemyPrefab: {fileID: 1222148337324201583, guid: be1fc3501bdaa5f4b959db60a9354c0c, type: 3}
       spawnCount: 1
     spawnInterval: 0
   minX: -10
@@ -14716,6 +14729,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &829143208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829143204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce49097458c5a314f852d13de4ed9a30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageInitializer
+  stageIndexForThisScene: 0
 --- !u!1 &839709392
 GameObject:
   m_ObjectHideFlags: 0

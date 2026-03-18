@@ -10,13 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9e00e94f66c9e24db2f543826af1241, type: 3}
-  m_Name: 102
+  m_Name: 208
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentData
-  equipName: "\uC0F4\uC26C\uB974"
-  type: 0
-  equipSprite: {fileID: 21300000, guid: f9cdd1844b02d4c81989b265d121a78a, type: 3}
+  equipName: "\uD50C\uB808\uC774\uD2B8 \uC544\uBA38"
+  type: 3
+  equipSprite: {fileID: 21300000, guid: 61f60bf66a0684be3b448f6e237a3f12, type: 3}
   spriteKey: 
   attackSpeedBonus: 0
-  attackRange: 2
-  defense: 0
-  additionalStatBonuses: []
+  attackRange: 1.5
+  defense: 26
+  additionalStatBonuses:
+  - type: 0
+    bonusLevel: 0
+  - type: 0
+    bonusLevel: 0

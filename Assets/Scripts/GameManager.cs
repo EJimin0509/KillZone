@@ -58,11 +58,15 @@ public class GameManager : MonoBehaviour
 
     public void ClearStage(int stageIndex)
     {
+        Debug.Log($"스테이지 클리어 호출됨! 현재 클리어한 인덱스: {stageIndex}");
+
         int nextStage = stageIndex + 1;
         if (nextStage < stageUnlocked.Length)
         {
             stageUnlocked[nextStage] = true;
+            Debug.Log($"{nextStage + 1} 스테이지 잠금 해제 완료!");
         }
+
         FinalizeStageGold();
     }
 

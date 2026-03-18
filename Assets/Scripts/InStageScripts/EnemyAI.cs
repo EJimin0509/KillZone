@@ -281,6 +281,8 @@ public class EnemyAI : MonoBehaviour
             int reward = data.killReward;
             if (data.isBoss) reward += data.bossBonus;
 
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeathSound);
+
             GameManager.Instance.AddGold(reward);
 
             Debug.Log($"<color=yellow>{data.enemyName}</color> »ç¸Á! È¹µæ °ñµå: {reward}");
@@ -360,6 +362,7 @@ public class EnemyAI : MonoBehaviour
                 {
                     _currentTarget.GetComponent<DefenseBase>().TakeDamage(data.attackPower);
                 }
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.knifeSound);
             }
             _lastAttackTime = Time.time;
         }

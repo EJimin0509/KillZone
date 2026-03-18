@@ -446,6 +446,7 @@ public class UnitStat : MonoBehaviour
                 }
             }
         }
+        SoundManager.Instance.PlaySFX(SoundManager.Instance.maleDeathSound);
 
         //Debug.Log($"{gameObject.name} 사망. 주변 아군 의지 감소.");
         gameObject.SetActive(false);

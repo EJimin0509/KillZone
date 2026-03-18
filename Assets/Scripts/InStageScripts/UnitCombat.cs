@@ -232,6 +232,7 @@ public class UnitCombat : MonoBehaviour
             {
                 if (targetEnemy != null) targetEnemy.TakeDamage(_myStat.AttackPower, transform.position); // 내 위치 정보를 넘겨 넉백 방향 계산
                 else if (targetBoss != null) targetBoss.TakeDamage(_myStat.AttackPower, transform.position);
+                SoundManager.Instance.PlaySFX(SoundManager.Instance.knifeSound);
             }
 
             _lastAttackTime = Time.time; // 초기화

@@ -27,6 +27,7 @@ public class Projectile : MonoBehaviour
 
         // [수정] 화살촉이 위쪽을 향하고 있으므로 angle에서 90도를 빼서 방향을 맞춤
         transform.rotation = Quaternion.Euler(0, 0, angle - 90f);
+        SoundManager.Instance.PlaySFX(SoundManager.Instance.arrowSound);
 
         _isInitialized = true;
     }

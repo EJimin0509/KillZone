@@ -13,11 +13,14 @@ MonoBehaviour:
   m_Name: 1
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Boss
-  maxHp: 5000
-  attackPower: 50
-  defense: 10
-  moveSpeed: 3
+  maxHp: 100
+  attackPower: 20
+  defense: 5
+  moveSpeed: 2
   attackType: 0
   attackRange: 0.5
   attackSpeed: 1
   accuracy: 80
+  killReward: 3
+  isBoss: 1
+  bossBonus: 50

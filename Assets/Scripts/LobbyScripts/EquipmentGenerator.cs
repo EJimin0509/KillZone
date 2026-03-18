@@ -23,28 +23,34 @@ public class EquipmentGenerator : MonoBehaviour
     private Dictionary<EquipmentType, List<EquipmentSpec>> _itemPool = new Dictionary<EquipmentType, List<EquipmentSpec>>()
     {
         { EquipmentType.Helm, new List<EquipmentSpec> {
-            new EquipmentSpec { name = "가죽 헬름", bonusCount = 1, maxLevel = 1, baseValue = 1f },
-            new EquipmentSpec { name = "사슬 코이프", bonusCount = 1, maxLevel = 2, baseValue = 2f },
-            new EquipmentSpec { name = "그레이트헬름", bonusCount = 2, maxLevel = 1, baseValue = 3f },
-            new EquipmentSpec { name = "주스팅 헬름", bonusCount = 2, maxLevel = 2, baseValue = 5f }
+            new EquipmentSpec { name = "가죽헬름", bonusCount = 1, maxLevel = 1, baseValue = 12f },
+            new EquipmentSpec { name = "사슬 코이프", bonusCount = 1, maxLevel = 2, baseValue = 19f },
+            new EquipmentSpec { name = "그레이트헬름", bonusCount = 2, maxLevel = 1, baseValue = 26f },
+            new EquipmentSpec { name = "주스팅 헬름", bonusCount = 2, maxLevel = 2, baseValue = 33f }
         }},
         { EquipmentType.Chest, new List<EquipmentSpec> {
-            new EquipmentSpec { name = "가죽 아머", bonusCount = 1, maxLevel = 1, baseValue = 2f },
-            new EquipmentSpec { name = "라멜러 아머", bonusCount = 1, maxLevel = 2, baseValue = 4f },
-            new EquipmentSpec { name = "퀴레시어 아머", bonusCount = 2, maxLevel = 1, baseValue = 6f },
-            new EquipmentSpec { name = "플레이트 아머", bonusCount = 2, maxLevel = 2, baseValue = 10f }
+            new EquipmentSpec { name = "가죽아머", bonusCount = 1, maxLevel = 1, baseValue = 12f },
+            new EquipmentSpec { name = "라멜러 아머", bonusCount = 1, maxLevel = 2, baseValue = 19f },
+            new EquipmentSpec { name = "퀴레시어 아머", bonusCount = 2, maxLevel = 1, baseValue = 26f },
+            new EquipmentSpec { name = "플레이트 아머", bonusCount = 2, maxLevel = 2, baseValue = 33f }
         }},
         { EquipmentType.Melee, new List<EquipmentSpec> {
-            new EquipmentSpec { name = "단검", bonusCount = 1, maxLevel = 1, baseValue = 1.2f },
-            new EquipmentSpec { name = "롱소드", bonusCount = 1, maxLevel = 2, baseValue = 1.5f },
-            new EquipmentSpec { name = "워해머", bonusCount = 2, maxLevel = 1, baseValue = 1.5f },
-            new EquipmentSpec { name = "그레이트소드", bonusCount = 2, maxLevel = 2, baseValue = 2f }
+            // 검 시리즈
+            new EquipmentSpec { name = "용병의 검", bonusCount = 1, maxLevel = 1, baseValue = 1f },
+            new EquipmentSpec { name = "샴쉬르", bonusCount = 1, maxLevel = 2, baseValue = 1f },
+            new EquipmentSpec { name = "츠바이 헨더", bonusCount = 2, maxLevel = 1, baseValue = 1f },
+            new EquipmentSpec { name = "바스타드 소드", bonusCount = 2, maxLevel = 2, baseValue = 1f },
+            // 창 시리즈
+            new EquipmentSpec { name = "폴암", bonusCount = 1, maxLevel = 1, baseValue = 2f },
+            new EquipmentSpec { name = "트라이던트", bonusCount = 1, maxLevel = 2, baseValue = 2f },
+            new EquipmentSpec { name = "글레이브", bonusCount = 2, maxLevel = 1, baseValue = 2f },
+            new EquipmentSpec { name = "할버드", bonusCount = 2, maxLevel = 2, baseValue = 2f }
         }},
         { EquipmentType.Bow, new List<EquipmentSpec> {
-            new EquipmentSpec { name = "숏보우", bonusCount = 1, maxLevel = 1, baseValue = 5f },
-            new EquipmentSpec { name = "롱보우", bonusCount = 1, maxLevel = 2, baseValue = 8f },
-            new EquipmentSpec { name = "크로스보우", bonusCount = 2, maxLevel = 1, baseValue = 10f },
-            new EquipmentSpec { name = "헤비 크로스보우", bonusCount = 2, maxLevel = 2, baseValue = 12f }
+            new EquipmentSpec { name = "롱보우", bonusCount = 1, maxLevel = 1, baseValue = 7f },
+            new EquipmentSpec { name = "아이언보우", bonusCount = 1, maxLevel = 2, baseValue = 7f },
+            new EquipmentSpec { name = "크로스보우", bonusCount = 2, maxLevel = 1, baseValue = 7f },
+            new EquipmentSpec { name = "키리크로스보우", bonusCount = 2, maxLevel = 2, baseValue = 7f }
         }}
     };
 

@@ -15,6 +15,7 @@ MonoBehaviour:
   equipName: "\uC6A9\uBCD1\uC758 \uAC80"
   type: 0
   equipSprite: {fileID: 21300000, guid: df96032537d4c482e9b20c674c73dc45, type: 3}
+  spriteKey: 
   attackSpeedBonus: 0
   attackRange: 2
   defense: 0

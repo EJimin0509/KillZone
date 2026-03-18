@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class BossAI : MonoBehaviour
 {
@@ -36,6 +37,9 @@ public class BossAI : MonoBehaviour
     private bool _isDead = false;
     private float _currentDefenseModifier = 1f;
 
+    [Header("--- 보스 UI 설정 ---")]
+    [SerializeField] private Slider bossHpSlider;
+
     private void Awake()
     {
         _animator = GetComponentInChildren<Animator>();
@@ -64,6 +68,21 @@ public class BossAI : MonoBehaviour
         _attackPatternIndex = 0;
         _currentDefenseModifier = 1f;
         if (data != null) CurrentHp = data.maxHp;
+    }
+
+    private void Start()
+    {
+        // 시작할 때 체력바 초기화
+        UpdateBossHPUI();
+    }
+
+    private void UpdateBossHPUI()
+    {
+        if (bossHpSlider != null && data != null)
+        {
+            bossHpSlider.maxValue = data.maxHp;
+            bossHpSlider.value = CurrentHp;
+        }
     }
 
     private void Update()
@@ -102,6 +121,8 @@ public class BossAI : MonoBehaviour
         float finalDamage = Mathf.Max((damage - data.defense) * _currentDefenseModifier, 1f);
         CurrentHp -= finalDamage;
 
+        UpdateBossHPUI();
+
         HandleSpriteFlip(attackerPos);
 
         if (gameObject.activeSelf && !_isKnockbacking)
@@ -137,26 +158,55 @@ public class BossAI : MonoBehaviour
         _isAttacking = true;
         int step = _attackPatternIndex % 3;
 
+        // [추가] 공격 시작 시 사운드 출력
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.knifeSound);
+        }
+
         if (_isFrenzy)
         {
-            if (step == 0) { _animator.SetTrigger("attack"); ExecuteAttack(1f); }
-            else { _animator.SetTrigger("enrageAttack"); ExecuteAttack(2f); }
+            if (step == 0)
+            {
+                _animator.SetTrigger("attack");
+                ExecuteAttack(1f);
+            }
+            else
+            {
+                _animator.SetTrigger("enrageAttack");
+                // [선택] 광폭화 공격 시 사운드를 한 번 더 내고 싶다면 아래 주석 해제
+                // SoundManager.Instance.PlaySFX(SoundManager.Instance.knifeSound);
+                ExecuteAttack(2f);
+            }
         }
         else
         {
-            if (step == 2)
+            if (step == 2) // 특별 공격 (차징 공격 느낌)
             {
                 _animator.SetTrigger("specialAttack");
                 _currentDefenseModifier = 1.5f;
+
+                // 특수 공격은 약간의 대기 후 타격하므로 사운드 타이밍을 조절할 수도 있습니다.
                 yield return new WaitForSeconds(0.8f);
+
+                // 타격 시점에 소리를 한 번 더 내어 임팩트를 줍니다.
+                if (SoundManager.Instance != null)
+                    SoundManager.Instance.PlaySFX(SoundManager.Instance.knifeSound);
+
                 ExecuteAttack(1.5f);
                 _currentDefenseModifier = 1f;
             }
-            else { _animator.SetTrigger("attack"); ExecuteAttack(1f); }
+            else
+            {
+                _animator.SetTrigger("attack");
+                ExecuteAttack(1f);
+            }
         }
 
         _attackPatternIndex++;
         _lastAttackTime = Time.time;
+
+        // 공격 후 딜레이
         yield return new WaitForSeconds(_isFrenzy ? 0.3f : 0.8f);
         _isAttacking = false;
     }
@@ -192,22 +242,44 @@ public class BossAI : MonoBehaviour
         if (_isDead) yield break;
         _isDead = true;
 
+        // [핵심 1] 죽는 즉시 태그를 바꿔버립니다. 
+        // 이렇게 하면 Spawner가 다음 프레임에 바로 "적 0명"으로 인식합니다.
+        gameObject.tag = "Untagged";
+
+        // [핵심 2] 모든 행동 즉시 중단
+        _isAttacking = false;
+        _isKnockbacking = false;
+        if (_agent != null && _agent.isActiveAndEnabled)
+        {
+            _agent.isStopped = true;
+            _agent.enabled = false;
+        }
+        if (_obstacle != null) _obstacle.enabled = false;
+        if (_collider != null) _collider.enabled = false;
+
+        // 사운드 출력
+        if (SoundManager.Instance != null)
+            SoundManager.Instance.PlaySFX(SoundManager.Instance.enemyDeathSound);
+
+        // 보상 지급
         if (data != null && GameManager.Instance != null)
         {
             GameManager.Instance.AddGold(data.killReward + data.bossBonus);
         }
 
-        if (_agent != null) { _agent.isStopped = true; _agent.enabled = false; }
-        if (_obstacle != null) _obstacle.enabled = false;
-        if (_collider != null) _collider.enabled = false;
-
-        StopAllCoroutines();
+        // 애니메이션 실행
         _animator.SetTrigger("die");
+
+        // [핵심 3] 죽음 애니메이션을 끝까지 보여주기 위해 넉넉히 대기
         yield return new WaitForSeconds(1.5f);
 
+        // 최종 비활성화
         gameObject.SetActive(false);
-        if (SimpleObjectPool.Instance != null) SimpleObjectPool.Instance.ReturnToPool(this.gameObject);
-        else Destroy(gameObject);
+
+        if (SimpleObjectPool.Instance != null)
+            SimpleObjectPool.Instance.ReturnToPool(this.gameObject);
+        else
+            Destroy(gameObject);
     }
 
     private void MoveToTarget()
@@ -239,11 +311,26 @@ public class BossAI : MonoBehaviour
 
     private void HandleTargeting()
     {
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, data.attackRange * 2f, _unitLayer);
-        if (hit != null) { _currentTarget = hit.gameObject; return; }
+        // 1. 주변에 살아있는 아군 유닛이 있는지 넓은 범위로 탐색 (데이터상의 사거리보다 넉넉하게)
+        float searchRadius = 10f; // 탐색 범위 상향
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, searchRadius, _unitLayer);
 
-        if (!IsTargetAlive(_currentTarget))
-            _currentTarget = DefenseBase.Current != null ? DefenseBase.Current.gameObject : null;
+        if (hit != null)
+        {
+            UnitStat unit = hit.GetComponent<UnitStat>();
+            if (unit != null && unit.CurrentHp > 0)
+            {
+                _currentTarget = hit.gameObject;
+                return;
+            }
+        }
+
+        // 2. 주변에 아군이 없거나 이미 죽었다면 Base를 타겟으로 함
+        if (_currentTarget == null || !IsTargetAlive(_currentTarget))
+        {
+            if (DefenseBase.Current != null)
+                _currentTarget = DefenseBase.Current.gameObject;
+        }
     }
 
     private bool IsTargetAlive(GameObject t)
