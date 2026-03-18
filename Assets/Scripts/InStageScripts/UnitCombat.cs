@@ -99,9 +99,16 @@ public class UnitCombat : MonoBehaviour
         if (CurrentTarget != null)
         {
             float dist = Vector2.Distance(transform.position, CurrentTarget.transform.position);
-            EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
 
-            if (targetEnemy == null || targetEnemy.CurrentHp <= 0)
+            // --- [수정] 타겟이 일반 적인지 보스인지 모두 체크하도록 변경 ---
+            bool isAlive = false;
+            EnemyAI targetEnemy = CurrentTarget.GetComponent<EnemyAI>();
+            BossAI targetBoss = CurrentTarget.GetComponent<BossAI>();
+
+            if (targetEnemy != null && targetEnemy.CurrentHp > 0) isAlive = true;
+            else if (targetBoss != null && targetBoss.CurrentHp > 0) isAlive = true;
+
+            if (!isAlive)
             {
                 ResetCombat();
                 return;
@@ -112,7 +119,9 @@ public class UnitCombat : MonoBehaviour
             {
                 EnableObstacle(); // 공격 시에는 장애물 모드 가동
                 HandleFlip(CurrentTarget.transform.position);
-                TryAttack(targetEnemy);
+
+                // 공격 시 EnemyAI 혹은 BossAI를 판단하여 공격 실행
+                TryAttackLogic(targetEnemy, targetBoss);
             }
             // 사거리 밖인 경우 (추격)
             else
@@ -178,12 +187,18 @@ public class UnitCombat : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            // 태그가 "Enemy"인지 확인
+            // 태그가 "Enemy"인지 확인 (보스도 Enemy 태그를 가지고 있어야 탐색됨)
             if (hit.CompareTag("Enemy"))
             {
-                // EnemyAI 컴포넌트가 있고 살아있는지 확인
+                // EnemyAI 혹은 BossAI 컴포넌트가 있고 살아있는지 확인
                 EnemyAI enemy = hit.GetComponent<EnemyAI>();
-                if (enemy != null && enemy.CurrentHp > 0)
+                BossAI boss = hit.GetComponent<BossAI>();
+
+                bool isTargetValid = false;
+                if (enemy != null && enemy.CurrentHp > 0) isTargetValid = true;
+                else if (boss != null && boss.CurrentHp > 0) isTargetValid = true;
+
+                if (isTargetValid)
                 {
                     float d = Vector2.Distance(transform.position, hit.transform.position);
                     if (d < closestDist) { closestDist = d; closestEnemy = hit.gameObject; }
@@ -194,13 +209,15 @@ public class UnitCombat : MonoBehaviour
     }
 
     /// <summary>
-    /// 1. 공격 속도에 맞춰 적을 공격한다.
+    /// 1. 공격 속도에 맞춰 적을 공격한다. (EnemyAI와 BossAI 모두 대응)
     /// </summary>
-    /// <param name="target">공격 대상</param>
-    private void TryAttack(EnemyAI target)
+    private void TryAttackLogic(EnemyAI targetEnemy, BossAI targetBoss)
     {
         if (Time.time >= _lastAttackTime + (1f / _myStat.AttackSpeed)) // 공격 속도 체크
         {
+            Vector3 targetPos = targetEnemy != null ? targetEnemy.transform.position : targetBoss.transform.position;
+            string targetTag = targetEnemy != null ? targetEnemy.tag : targetBoss.tag;
+
             // 원거리 명중률 체크
             if (_myStat.currentWeapon != null && _myStat.currentWeapon.type == EquipmentType.Bow)
             {
@@ -209,11 +226,12 @@ public class UnitCombat : MonoBehaviour
                 Projectile p = arrowObj.GetComponent<Projectile>();
 
                 // 발사 (대미지, 시작위치, 적위치, 명중률, 타겟태그)
-                p.Launch(_myStat.AttackPower, transform.position, target.transform.position, _myStat.RangeAccuracy, "Enemy");
+                p.Launch(_myStat.AttackPower, transform.position, targetPos, _myStat.RangeAccuracy, targetTag);
             }
             else // 근접 공격
             {
-                target.TakeDamage(_myStat.AttackPower, transform.position); // 내 위치 정보를 넘겨 넉백 방향 계산
+                if (targetEnemy != null) targetEnemy.TakeDamage(_myStat.AttackPower, transform.position); // 내 위치 정보를 넘겨 넉백 방향 계산
+                else if (targetBoss != null) targetBoss.TakeDamage(_myStat.AttackPower, transform.position);
             }
 
             _lastAttackTime = Time.time; // 초기화
@@ -237,7 +255,6 @@ public class UnitCombat : MonoBehaviour
             _agent.isStopped = false;
         }
     }
-
 
     /// <summary>
     /// 공격 중인 방향으로 스프라이트 반전

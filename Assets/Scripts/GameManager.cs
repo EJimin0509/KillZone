@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
 
     public int stageGold;
     private string _savePath;
+    private bool _isGameOver = false;
 
     private void Awake()
     {
@@ -33,6 +34,26 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         LoadGame();
+    }
+
+    public void GameOver(bool isVictory)
+    {
+        // 1. 중복 종료 방지
+        if (_isGameOver) return;
+        _isGameOver = true;
+
+        // 2. 씬에 있는 ResultUIController를 찾아서 UI 출력을 명령함
+        // (매번 찾기 번거롭다면 Awake에서 미리 참조해둬도 좋습니다)
+        ResultUIController resultUI = FindFirstObjectByType<ResultUIController>();
+
+        if (resultUI != null)
+        {
+            resultUI.ShowResult(isVictory);
+        }
+        else
+        {
+            //Debug.LogError("씬에 ResultUIController가 없습니다!");
+        }
     }
 
     public void ClearStage(int stageIndex)

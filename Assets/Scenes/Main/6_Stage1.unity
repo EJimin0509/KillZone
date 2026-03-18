@@ -14628,11 +14628,9 @@ MonoBehaviour:
   waves:
   - waveName: 1
     enemyPool:
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 3e7e74b223f990044be5f66673be2e41, type: 3}
-      spawnCount: 5
-    - enemyPrefab: {fileID: 1222148337324201583, guid: 26e400ca946b01f4e99d04c06d32aceb, type: 3}
-      spawnCount: 3
-    spawnInterval: 0.2
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 450490a4ce8def04383ad8803e3cd03e, type: 3}
+      spawnCount: 1
+    spawnInterval: 0
   minX: -10
   maxX: 10
   spawnY: 16
@@ -15170,7 +15168,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CommandManager
   unitLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 16384
   structureLayer:
     serializedVersion: 2
     m_Bits: 10240
@@ -16277,7 +16275,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1175376082
 RectTransform:
   m_ObjectHideFlags: 0
