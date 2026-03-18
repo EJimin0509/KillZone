@@ -3437,10 +3437,25 @@ MonoBehaviour:
   enemyCountText: {fileID: 0}
   waves:
   - waveName: 1
-    enemyPool: []
+    enemyPool:
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 9a2d06fdb5f78e94fbdc7ea685096f91, type: 3}
+      spawnCount: 5
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 92f0c069c0caea84abb8c46056c768c2, type: 3}
+      spawnCount: 3
     spawnInterval: 0.2
   - waveName: 2
-    enemyPool: []
+    enemyPool:
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 9a2d06fdb5f78e94fbdc7ea685096f91, type: 3}
+      spawnCount: 5
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 92f0c069c0caea84abb8c46056c768c2, type: 3}
+      spawnCount: 3
+    spawnInterval: 0.2
+  - waveName: 3
+    enemyPool:
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 9a2d06fdb5f78e94fbdc7ea685096f91, type: 3}
+      spawnCount: 5
+    - enemyPrefab: {fileID: 1222148337324201583, guid: 92f0c069c0caea84abb8c46056c768c2, type: 3}
+      spawnCount: 3
     spawnInterval: 0.2
   minX: -10
   maxX: 10

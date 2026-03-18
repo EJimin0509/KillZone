@@ -118,7 +118,6 @@ public class GameManager : MonoBehaviour
             currentGold = data.gold;
             currentStage = data.currentStage;
 
-            // 데이터 복제
             if (data.stageUnlocked != null)
             {
                 this.stageUnlocked = (bool[])data.stageUnlocked.Clone();
@@ -129,14 +128,27 @@ public class GameManager : MonoBehaviour
 
             ownedEquips.Clear();
             if (data.ownedEquips != null) ownedEquips.AddRange(data.ownedEquips);
-
-            // [핵심] 로드 직후 로비 UI가 있다면 즉시 갱신 명령
-            RefreshLobbyUI();
-            RefreshAllUI();
-
-            if (InventoryManager.Instance != null)
-                InventoryManager.Instance.RefreshInventoryFromSaveData();
         }
+        else
+        {
+            // --- [신규 유저를 위한 초기 설정] ---
+            Debug.Log("저장 파일을 찾을 수 없습니다. 신규 유저 초기 데이터 생성 시도.");
+
+            currentGold = 500;            // 기본 재화 500원 지급
+            currentStage = 1;             // 1스테이지부터 시작
+            stageUnlocked = new bool[] { true, false, false }; // 첫 스테지만 오픈
+
+            // 필요하다면 여기서 기본 유닛 1개를 강제로 넣어줄 수도 있습니다.
+
+            SaveGame(); // 초기 상태를 즉시 파일로 저장
+        }
+
+        // 로드(또는 초기화) 직후 UI 갱신
+        RefreshLobbyUI();
+        RefreshAllUI();
+
+        if (InventoryManager.Instance != null)
+            InventoryManager.Instance.RefreshInventoryFromSaveData();
     }
 
     public void RefreshLobbyUI()

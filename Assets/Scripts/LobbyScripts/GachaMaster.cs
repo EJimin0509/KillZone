@@ -49,6 +49,16 @@ public class GachaMaster : MonoBehaviour
     // 1. 유닛 뽑기 클릭 시
     public void OnClickUnitDraw()
     {
+        if (GameManager.Instance != null && GameManager.Instance.currentGold < 100)
+        {
+            Debug.Log("골드가 부족합니다!");
+            return;
+        }
+
+        GameManager.Instance.currentGold -= 100;
+        GameManager.Instance.SaveGame();
+        UpdateGoldUI();
+
         _isUnitActive = true;
 
         if (unitResultGroup) unitResultGroup.SetActive(true);
@@ -63,6 +73,17 @@ public class GachaMaster : MonoBehaviour
     // 2. 장비 뽑기 클릭 시
     public void OnClickEquipDraw()
     {
+        if (GameManager.Instance != null && GameManager.Instance.currentGold < 100)
+        {
+            Debug.Log("골드가 부족합니다!");
+            return;
+        }
+
+        // [추가] 골드 차감 및 저장
+        GameManager.Instance.currentGold -= 100;
+        GameManager.Instance.SaveGame();
+        UpdateGoldUI();
+
         _isUnitActive = false;
         if (equipResultGroup) equipResultGroup.SetActive(true);
         if (unitResultGroup) unitResultGroup.SetActive(false);
@@ -101,6 +122,12 @@ public class GachaMaster : MonoBehaviour
         HideAllGroups();
         // 여기서 다시 한번 확실하게 버튼들을 깨워줘야 합니다.
         SetAllButtonStates(true, true, false, false);
+    }
+
+    private void UpdateGoldUI()
+    {
+        var goldUI = FindAnyObjectByType<LobbyGoldUI>();
+        if (goldUI != null) goldUI.RefreshGoldDisplay();
     }
 
     public void UpdateResultImage(Sprite s) => commonResultImage.sprite = s;
